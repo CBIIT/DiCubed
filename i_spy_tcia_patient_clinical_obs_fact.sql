@@ -1,0 +1,128 @@
+drop table if exists ispy_patient_clinical_obs_fact;
+create table ispy_patient_clinical_obs_fact  as 
+with consts as (
+select
+       cast('1960-01-01' as timestamp) as start_date,
+       cast(NULL as timestamp) as end_date,
+       cast('@' as varchar(10)) as provider_id,
+       1 as instance_num,
+       cast(NULL as decimal(18,5)) as quantity_num,
+       cast(NULL as varchar(50)) as location_cd,
+       cast(NULL as decimal(18,5)) as confidence_num,
+       cast(NULL as varchar(50)) as valueflag_cd,
+       cast('i_spy_tcia_patient_clinical_subset' as varchar(50) )as sourcesystem_cd,
+       1 as upload_id,
+       current_timestamp as update_date
+       ),
+race as (
+
+select
+    cast(subjectid as varchar(200)) as patient_ide,
+     'fabricated_for_' || subjectid as encounter_ide,
+  case
+    when i.race_id = 1 then 'NCIt:C41261' /* white */
+    when i.race_id = 3 then 'NCIt:C16352' /* African american */
+    when i.race_id = 4 then 'NCIt:C41260' /* Asian */
+    when i.race_id = 5 then 'NCIt:C41219' /* Native Hawaiian Pacific Islander */ 
+    when i.race_id = 6 then 'NCIt:C41259' /* American Indian or Alaskan Native */
+    when i.race_id = 50 then 'NCIt:C67109' /* Multiracial */
+    else cast(NULL as varchar(50))
+    /* race_id 0 */
+  end as concept_cd,
+  to_date(i.dataextractdt, 'MM/DD/YY') as download_date,
+  cast(NULL as varchar(50)) as valtype_cd,
+  cast(NULL as varchar(255)) as tval_char,
+  cast(NULL as decimal(18,5)) as nval_num,
+  cast(NULL as varchar(50)) as units_cd,
+  current_timestamp as import_date
+  from
+  i_spy_tcia_patient_clinical_subset i where i.subjectid is not null
+ )
+,
+estrogen_receptor as (
+select
+cast(subjectid as varchar(200)) as patient_ide,
+       'fabricated_for_' || subjectid as encounter_ide,
+  case
+    when i.erpos = 0 then 'NCIt:C15493' /* Negative */
+    when i.erpos = 1 then 'NCIt:C15492' /* Positive */
+    when i.erpos = 2 then 'NCIt:C15495' /* Unknown */
+    else cast(NULL as varchar(50))
+  end as concept_cd,
+  to_date(i.dataextractdt, 'MM/DD/YY') as download_date,
+  cast(NULL as varchar(50)) as valtype_cd,
+  cast(NULL as varchar(255)) as tval_char,
+  cast(NULL as decimal(18,5)) as nval_num,
+  cast(NULL as varchar(50)) as units_cd,
+  current_timestamp as import_date
+  from
+  i_spy_tcia_patient_clinical_subset i where i.subjectid is not null
+  )
+,
+progesterone_receptor as (
+select
+cast(subjectid as varchar(200)) as patient_ide,
+       'fabricated_for_' || subjectid as encounter_ide,
+  case
+    when i.pgrpos = 0 then 'NCIt:C15497' /* Negative */
+    when i.pgrpos = 1 then 'NCIt:C15496' /* Positive */
+    when i.pgrpos = 2 or i.pgrpos is NULL then 'NCIt:C15498' /* Unknown */
+    else cast(NULL as varchar(50))
+  end as concept_cd,
+  to_date(i.dataextractdt, 'MM/DD/YY') as download_date,
+  cast(NULL as varchar(50)) as valtype_cd,
+  cast(NULL as varchar(255)) as tval_char,
+  cast(NULL as decimal(18,5)) as nval_num,
+  cast(NULL as varchar(50)) as units_cd,
+  current_timestamp as import_date
+  from
+  i_spy_tcia_patient_clinical_subset i where i.subjectid is not null
+  )
+  ,
+  her2 as (
+  select
+  cast(subjectid as varchar(200)) as patient_ide,
+         'fabricated_for_' || subjectid as encounter_ide,
+    case
+      when i.her2mostpos = 0 then 'NCIt:C68749' /* Negative */
+      when i.her2mostpos = 1 then 'NCIt:C68748' /* Positive */
+      else 'NCIt:68750' /*unknown*/
+    end as concept_cd,
+    to_date(i.dataextractdt, 'MM/DD/YY') as download_date,
+    cast(NULL as varchar(50)) as valtype_cd,
+    cast(NULL as varchar(255)) as tval_char,
+    cast(NULL as decimal(18,5)) as nval_num,
+    cast(NULL as varchar(50)) as units_cd,
+    current_timestamp as import_date
+    from
+    i_spy_tcia_patient_clinical_subset i where i.subjectid is not null
+    )
+,
+  ages as (
+  select
+  cast(subjectid as varchar(200)) as patient_ide,
+         'fabricated_for_' || subjectid as encounter_ide,
+
+      cast('NCIt:C69260' as varchar(50))  as concept_cd,
+    to_date(i.dataextractdt, 'MM/DD/YY') as download_date,
+    cast('N' as varchar(50)) as valtype_cd,
+    cast('E' as varchar(255)) as tval_char,
+    cast(i.age as decimal(18,5)) as nval_num,
+    cast('Years' as varchar(50)) as units_cd,
+    current_timestamp as import_date
+    from
+    i_spy_tcia_patient_clinical_subset i where i.subjectid is not null
+  )
+  ,
+ispy_clinical as (
+select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date  from race
+union
+select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date from estrogen_receptor
+union
+select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date from progesterone_receptor
+union
+select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date from ages
+union
+select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date from her2
+)
+select * from ispy_clinical cross join consts;
