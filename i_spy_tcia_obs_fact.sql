@@ -1,3 +1,9 @@
+create or replace function ispy_obs_fact_proc()
+RETURNS void
+LANGUAGE 'plpgsql'
+as $BODY$ 
+BEGIN
+
 drop table if exists ispy_obs_fact;
 create table ispy_obs_fact  as 
 with consts as (
@@ -241,3 +247,7 @@ select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_c
 from organ  
 )
 select * from ispy_clinical cross join consts;
+
+END;
+$BODY$;
+
