@@ -85,11 +85,65 @@ select 1 as c_hlevel,
        cast('NCIt:C25185' as varchar(50)) as c_basecode,
        cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C25185' as text) as c_comment
 )
+,
+race_tree as (
+select 2 as c_hlevel,
+       cast($$\Demographics\C17049\$$  as varchar(700)) as c_fullname, 
+       cast('Race' as varchar(2000)) as c_name,
+       cast('FA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Demographics\C17049\$$ as varchar(700)) as c_dimcode,
+       cast('Race' as varchar(900)) as c_tooltip,
+       cast('NCIt:C17049' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C17049'  as text) as c_comment
+union
+select 3 as c_hlevel,
+       cast($$\Demographics\C17049\C41261\$$  as varchar(700)) as c_fullname, 
+       cast('White' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Demographics\C17049\C41261\$$ as varchar(700)) as c_dimcode,
+       cast('CDISC Definition: Denotes a person with European, Middle Eastern, or North African ancestral origin who identifies, or is identified, as White.' as varchar(900)) as c_tooltip,
+       cast('NCIt:C41261' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C41261'  as text) as c_comment
+union
+select 3 as c_hlevel,
+       cast($$\Demographics\C17049\C41259\$$  as varchar(700)) as c_fullname, 
+       cast('American Indian or Alaska Native' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Demographics\C17049\C41259\$$ as varchar(700)) as c_dimcode,
+       cast('CDISC Definition: A person having origins in any of the original peoples of North and South America (including Central America), and who maintains tribal affiliation or community attachment. (FDA)' as varchar(900)) as c_tooltip,
+       cast('NCIt:C41259' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C41259'  as text) as c_comment
+union
+select 3 as c_hlevel,
+       cast($$\Demographics\C17049\C16352\$$  as varchar(700)) as c_fullname, 
+       cast('Black or African American' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Demographics\C17049\C16352\$$ as varchar(700)) as c_dimcode,
+       cast($$CDISC Definition: A person having origins in any of the black racial groups of Africa. Terms such as "Haitian" or "Negro" can be used in addition to "Black or African American." (FDA)$$ as varchar(900)) as c_tooltip,
+       cast('NCIt:C16352' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C16352'  as text) as c_comment
+union
+select 3 as c_hlevel,
+       cast($$\Demographics\C17049\C41260\$$  as varchar(700)) as c_fullname, 
+       cast('Asian' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Demographics\C17049\C41260\$$ as varchar(700)) as c_dimcode,
+       cast('CDISC Definition: A person having origins in any of the original peoples of the Far East, Southeast Asia, or the Indian subcontinent including, for example, Cambodia, China, India, Japan, Korea, Malaysia, Pakistan, the Philippine Islands, Thailand, and Vietnam. (FDA)
+' as varchar(900)) as c_tooltip,
+       cast('NCIt:C41260' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C41260'  as text) as c_comment
+)
 , 
 all_rows as (
 select * from level_1 
 cross join consts
-
+union 
+select * from race_tree cross join consts
 union
  
 select 
@@ -115,7 +169,7 @@ insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_acces
       c_visualattributes, c_totalnum, c_basecode, c_metadataxml, c_facttablecolumn , c_dimtablename,c_columnname, 
       c_columndatatype, c_operator, c_dimcode, c_comment, c_tooltip, c_entry_date, c_change_date, c_status_cd, valuetype_cd )
 values (
-'DI3', 'DI3', 'N' , 1 , $$\Survival Status\$$ , 
+'DI3_LAT', 'DI3', 'N' , 1 , $$\Laterality\$$ , 
 'Laterality' , 'N'  , 'FA' , 
 NULL , 'NCIt:C25185' , NULL, 
 'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' , 
@@ -126,7 +180,7 @@ insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_acces
       c_visualattributes, c_totalnum, c_basecode, c_metadataxml, c_facttablecolumn , c_dimtablename,c_columnname, 
       c_columndatatype, c_operator, c_dimcode, c_comment, c_tooltip, c_entry_date, c_change_date, c_status_cd, valuetype_cd )
 values (
-'DI3', 'DI3', 'N' , 1 , $$\Survival Status\$$ , 
+'DI3_SURV', 'DI3', 'N' , 1 , $$\Survival Status\$$ , 
 'Survival Status' , 'N'  , 'FA' , 
 NULL , 'NCIt:C25717' , NULL, 
 'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' , 
@@ -137,7 +191,7 @@ insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_acces
       c_visualattributes, c_totalnum, c_basecode, c_metadataxml, c_facttablecolumn , c_dimtablename,c_columnname, 
       c_columndatatype, c_operator, c_dimcode, c_comment, c_tooltip, c_entry_date, c_change_date, c_status_cd, valuetype_cd )
 values (
-'DI3', 'DI3', 'N' , 1 , $$\Data Set\$$ , 
+'DI3_DATASET', 'DI3', 'N' , 1 , $$\Data Set\$$ , 
 'Data Set' , 'N'  , 'FA' , 
 NULL , 'NCIt:C47824' , NULL, 
 'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' , 
@@ -148,7 +202,7 @@ insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_acces
       c_visualattributes, c_totalnum, c_basecode, c_metadataxml, c_facttablecolumn , c_dimtablename,c_columnname, 
       c_columndatatype, c_operator, c_dimcode, c_comment, c_tooltip, c_entry_date, c_change_date, c_status_cd, valuetype_cd )
 values (
-'DI3', 'DI3', 'N' , 1 , $$\Anatomic Site\$$ , 
+'DI3_SITE', 'DI3', 'N' , 1 , $$\Anatomic Site\$$ , 
 'Anatomic Site' , 'N'  , 'FA' , 
 NULL , 'NCIt:C13717' , NULL, 
 'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' , 
@@ -158,7 +212,7 @@ insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_acces
       c_visualattributes, c_totalnum, c_basecode, c_metadataxml, c_facttablecolumn , c_dimtablename,c_columnname, 
       c_columndatatype, c_operator, c_dimcode, c_comment, c_tooltip, c_entry_date, c_change_date, c_status_cd, valuetype_cd )
 values (
-'DI3', 'DI3', 'N' , 1 , $$\A19046186\$$ , 
+'DI3_RECEPTOR', 'DI3', 'N' , 1 , $$\A19046186\$$ , 
 'Receptor Status' , 'N'  , 'FA' , 
 NULL , 'NCIt:C94299' , NULL, 
 'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' , 
@@ -169,7 +223,7 @@ insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_acces
       c_visualattributes, c_totalnum, c_basecode, c_metadataxml, c_facttablecolumn , c_dimtablename,c_columnname, 
       c_columndatatype, c_operator, c_dimcode, c_comment, c_tooltip, c_entry_date, c_change_date, c_status_cd, valuetype_cd )
 values (
-'DI3', 'DI3', 'N' , 1 , $$\Primary Diagnosis\$$ , 
+'DI3_PRIM_DX', 'DI3', 'N' , 1 , $$\Primary Diagnosis\$$ , 
 'Primary Diagnosis' , 'N'  , 'FA' , 
 NULL , 'NCIt:C15220' , NULL, 
 'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' , 
@@ -180,7 +234,7 @@ insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_acces
       c_visualattributes, c_totalnum, c_basecode, c_metadataxml, c_facttablecolumn , c_dimtablename,c_columnname, 
       c_columndatatype, c_operator, c_dimcode, c_comment, c_tooltip, c_entry_date, c_change_date, c_status_cd, valuetype_cd )
 values (
-'DI3', 'DI3', 'N' , 1 , $$\Demographics\$$ , 
+'DI3_DEMO', 'DI3', 'N' , 1 , $$\Demographics\$$ , 
 'Demographics' , 'N'  , 'FA' , 
 NULL , NULL , NULL, 
 'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' , 
