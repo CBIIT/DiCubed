@@ -220,7 +220,7 @@ cast(subjectid as varchar(200)) as patient_ide,
   cast(subjectid as varchar(200)) as patient_ide,
          'fabricated_for_' || subjectid as encounter_ide,
     
-    cast('NCIt:C47824:I-Spy1'as varchar(50)) as  concept_cd,   /* implied breast */
+    cast('NCIt:C47824:I-Spy1'as varchar(50)) as  concept_cd,   /* Extract the name of the dataset as a fact */
     to_date(i.dataextractdt, 'MM/DD/YY') as download_date,
     cast(NULL as varchar(50)) as valtype_cd,
     cast(NULL as varchar(255)) as tval_char,
