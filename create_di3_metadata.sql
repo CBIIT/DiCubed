@@ -32,8 +32,8 @@ select 1 as c_hlevel,
        cast(NULL as text) as c_metadataxml,
        cast($$\Demographics\$$ as varchar(700)) as c_dimcode,
        cast('Demographics' as varchar(900)) as c_tooltip,
-       cast(NULL as varchar(50)) as c_basecode,
-       cast(NULL as text) as c_comment
+       cast('NCIt:C16495' as varchar(50)) as c_basecode,
+       cast('The statistical characterization of human populations or segments of human populations (e.g., characterization by age, sex, race, or income).' as text) as c_comment
 union
 select 1 as c_hlevel,
        cast($$\Primary Diagnosis\$$  as varchar(700)) as c_fullname, 
@@ -236,7 +236,7 @@ insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_acces
 values (
 'DI3_DEMO', 'DI3', 'N' , 1 , $$\Demographics\$$ , 
 'Demographics' , 'N'  , 'FA' , 
-NULL , NULL , NULL, 
+NULL , 'NCIt:C16495' , NULL, 
 'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' , 
-'LIKE' , $$\Demographics\$$ ,  NULL, 'Demographics' , 
+'LIKE' , $$\Demographics\$$ ,  NULL, 'The statistical characterization of human populations or segments of human populations (e.g., characterization by age, sex, race, or income).' , 
 current_timestamp , current_timestamp , NULL, NULL) ;
