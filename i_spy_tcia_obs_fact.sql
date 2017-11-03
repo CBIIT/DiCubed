@@ -215,6 +215,24 @@ cast(subjectid as varchar(200)) as patient_ide,
     i_spy_tcia_patient_clinical_subset i where i.subjectid is not null
     )
 ,
+  dataset  as (
+  select
+  cast(subjectid as varchar(200)) as patient_ide,
+         'fabricated_for_' || subjectid as encounter_ide,
+    
+    cast('NCIt:C47824:I-Spy1'as varchar(50)) as  concept_cd,   /* implied breast */
+    to_date(i.dataextractdt, 'MM/DD/YY') as download_date,
+    cast(NULL as varchar(50)) as valtype_cd,
+    cast(NULL as varchar(255)) as tval_char,
+    cast(NULL as decimal(18,5)) as nval_num,
+    cast(NULL as varchar(50)) as units_cd,
+    current_timestamp as import_date,
+    cast('TCIA_ISPY1_Clinical' as varchar(50)) as sourcesystem_cd
+    from
+    i_spy_tcia_patient_clinical_subset i where i.subjectid is not null
+    )
+,
+ispy_clinical as (
 ispy_clinical as (
 select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd
 from race
@@ -245,6 +263,9 @@ from laterality
 union
 select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd
 from organ  
+union
+select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd
+from dataset  
 )
 select * from ispy_clinical cross join consts;
 
