@@ -15,7 +15,7 @@ t := metadata_table_name;
 for table_cd,dimcode in 
     select c_fullname,c_dimcode from di3metadata.table_access where c_table_name = metadata_table_name  
 LOOP
-   RAISE NOTICE 'Table cd: % dimcode %', table_cd,  dimcode;
+   RAISE NOTICE 'Table cd: % dimcode %', table_cd,  dimcode; 
    sql :=  $$
    insert into di3crcdata.concept_dimension(concept_path, concept_cd, name_char, concept_blob, update_date, download_date, import_date, sourcesystem_cd, upload_id)
      select distinct c_fullname, c_basecode, c_name, NULL, update_date, download_date, import_date, sourcesystem_cd, cast(NULL as int) as upload_id 
