@@ -58,9 +58,9 @@ cast(subjectid as varchar(200)) as patient_ide,
     when i.race_id = 50 then 'NCIt:C67109' /* Multiracial */
     else 'NCIt:17049+NCIt:C17998' /* Unknown (generic unknown) */
   end as concept_cd,
+  cast(NULL as varchar(255)) as tval_char,
   to_date(i.dataextractdt, 'MM/DD/YY') as download_date,
   cast(NULL as varchar(50)) as valtype_cd,
-  cast(NULL as varchar(255)) as tval_char,
   cast(NULL as decimal(18,5)) as nval_num,
   cast(NULL as varchar(50)) as units_cd,
   current_timestamp as import_date,
@@ -151,16 +151,16 @@ cast(subjectid as varchar(200)) as patient_ide,
   select
   cast(subjectid as varchar(200)) as patient_ide,
          'fabricated_for_' || subjectid as encounter_ide,
-    cast('NCIt:C25717' as varchar(50)) as concept_cd, 
-    cast('T' as varchar(50)) as valtype_cd,
-    
     case
       when i.sstat = 7 then 'NCIt:C37987' /* Alive  */
       when i.sstat = 8 then 'NCIt:C28554' /* Positive */
       when i.sstat = 9 then 'NCIt:C48227' /* Lost to followup */
-      else 'NCIt:17998' /*unknown*/
-    end as tval_char,
+      else 'NCIt:C25717+NCIt:17998' /*unknown*/
+      end as concept_cd, 
+
+    cast(NULL as varchar(255)) as tval_char,
     to_date(i.dataextractdt, 'MM/DD/YY') as download_date,
+    cast(NULL as varchar(50)) as valtype_cd,
     cast(NULL as decimal(18,5)) as nval_num,
     cast(NULL as varchar(50)) as units_cd,
     current_timestamp as import_date,
@@ -192,7 +192,7 @@ cast(subjectid as varchar(200)) as patient_ide,
   select
   cast(subjectid as varchar(200)) as patient_ide,
          'fabricated_for_' || subjectid as encounter_ide,
-    cast('NCIt:C46110'as varchar(50)) as  concept_cd,   /* implied female */
+    cast('NCIt:C16576'as varchar(50)) as  concept_cd,   /* implied female */
     to_date(i.dataextractdt, 'MM/DD/YY') as download_date,
     cast(NULL as varchar(50)) as valtype_cd,
     cast(NULL as varchar(255)) as tval_char,
