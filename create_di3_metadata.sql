@@ -71,7 +71,7 @@ select 1 as c_hlevel,
        cast('FA' as varchar(3)) as c_visualattributes,
        cast(NULL as text) as c_metadataxml,
        cast($$\Survival Status\$$ as varchar(700)) as c_dimcode,
-       cast('Survival Status' as varchar(900)) as c_tooltip,
+       cast('The state or condition of being living or deceased; also includes the case where the vital status is unknown.' as varchar(900)) as c_tooltip,
        cast('NCIt:C25717' as varchar(50)) as c_basecode,
        cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C25717' as text) as c_comment
 union
@@ -86,6 +86,47 @@ select 1 as c_hlevel,
        cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C25185' as text) as c_comment
 )
 ,
+survival as (
+select 2 as c_hlevel,
+       cast($$\Survival Status\C37987\$$  as varchar(700)) as c_fullname, 
+       cast('Alive' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Survival Status\C37987\$$ as varchar(700)) as c_dimcode,
+       cast('Living; showing characteristics of life.' as varchar(900)) as c_tooltip,
+       cast('NCIt:C37987' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C37987' as text) as c_comment
+union
+select 2 as c_hlevel,
+       cast($$\Survival Status\C28554\$$  as varchar(700)) as c_fullname, 
+       cast('Dead' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Survival Status\C28554$$ as varchar(700)) as c_dimcode,
+       cast('The absence of life or state of being dead. (NCI)' as varchar(900)) as c_tooltip,
+       cast('NCIt:C28554' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C28554' as text) as c_comment
+union
+select 2 as c_hlevel,
+       cast($$\Survival Status\C48227\$$  as varchar(700)) as c_fullname, 
+       cast('Lost to Follow-up' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Survival Status\C48227\$$ as varchar(700)) as c_dimcode,
+       cast('The loss or lack of continuation of a subject to follow-up.' as varchar(900)) as c_tooltip,
+       cast('NCIt:C48227' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C48227' as text) as c_comment
+union
+select 2 as c_hlevel,
+       cast($$\Survival Status\C25717+C17998\$$  as varchar(700)) as c_fullname, 
+       cast('Unknown' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Survival Status\C25717+C17998\$$ as varchar(700)) as c_dimcode,
+       cast('Unknown survival status' as varchar(900)) as c_tooltip,
+       cast('NCIt:C25717+C17998' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C17998' as text) as c_comment
+),
 anatomic_sites as (
 select 2 as c_hlevel,
        cast($$\Anatomic Site\C12971\$$  as varchar(700)) as c_fullname, 
@@ -308,6 +349,38 @@ $$
 
 )
 ,
+gender_tree as (
+select 2 as c_hlevel,
+       cast($$\Demographics\C28421\$$  as varchar(700)) as c_fullname, 
+       cast('Sex' as varchar(2000)) as c_name,
+       cast('FA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Demographics\C28421\$$ as varchar(700)) as c_dimcode,
+       cast('The assemblage of physical properties or qualities by which male is distinguished from female; the physical difference between male and female; the distinguishing peculiarity of male or female.'  as varchar(900)) as c_tooltip,
+       cast('NCIt:C28421' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C28421'  as text) as c_comment
+union
+select 3 as c_hlevel,
+       cast($$\Demographics\C28421\C16576\$$  as varchar(700)) as c_fullname, 
+       cast('Female' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Demographics\C28421\C16576\$$ as varchar(700)) as c_dimcode,
+       cast('A person who belongs to the sex that normally produces ova. The term is used to indicate biological sex distinctions, or cultural gender role distinctions, or both.' as varchar(900)) as c_tooltip,
+       cast('NCIt:C16576' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C16576'  as text) as c_comment
+union
+select 3 as c_hlevel,
+       cast($$\Demographics\C28421\C20197\$$  as varchar(700)) as c_fullname, 
+       cast('Male' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Demographics\C28421\C20197\$$ as varchar(700)) as c_dimcode,
+       cast('A person who belongs to the sex that normally produces sperm. The term is used to indicate biological sex distinctions, cultural gender role distinctions, or both.' as varchar(900)) as c_tooltip,
+       cast('NCIt:C20197' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C20197'  as text) as c_comment
+)
+,
 race_tree as (
 select 2 as c_hlevel,
        cast($$\Demographics\C17049\$$  as varchar(700)) as c_fullname, 
@@ -396,6 +469,10 @@ select * from laterality cross join consts
 union
 select * from prim_dx cross join consts
 union
+select * from survival cross join consts
+union
+select * from gender_tree cross join consts
+union
 select 
 c_hlevel, c_fullname, c_name, c_visualattributes, c_metadataxml, c_dimcode, c_tooltip, 
        c_basecode, c_comment,
@@ -434,7 +511,7 @@ values (
 'Survival Status' , 'N'  , 'FA' , 
 NULL , 'NCIt:C25717' , NULL, 
 'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' , 
-'LIKE' , $$\Survival Status\$$ ,  NULL, 'Data Set' , 
+'LIKE' , $$\Survival Status\$$ ,  NULL, 'The state or condition of being living or deceased; also includes the case where the vital status is unknown.' , 
 current_timestamp , current_timestamp , NULL, NULL) ;
 
 insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_access, c_hlevel, c_fullname, c_name, c_synonym_cd, 
