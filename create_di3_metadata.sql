@@ -36,6 +36,16 @@ select 1 as c_hlevel,
        cast('The statistical characterization of human populations or segments of human populations (e.g., characterization by age, sex, race, or income).' as text) as c_comment
 union
 select 1 as c_hlevel,
+       cast($$\Clinical Course of Disease\$$  as varchar(700)) as c_fullname, 
+       cast('Clinincal Course of Disease' as varchar(2000)) as c_name,
+       cast('FA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Clinical Course of Disease\$$ as varchar(700)) as c_dimcode,
+       cast('A description of the series of events, including signs and symptoms, that define the course of a chronic disease over time.' as varchar(900)) as c_tooltip,
+       cast('NCIt:C35461' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C35461' as text) as c_comment
+union
+select 1 as c_hlevel,
        cast($$\Primary Diagnosis\$$  as varchar(700)) as c_fullname, 
        cast('Primary Diagnosis' as varchar(2000)) as c_name,
        cast('FA' as varchar(3)) as c_visualattributes,
@@ -84,6 +94,28 @@ select 1 as c_hlevel,
        cast('Laterality' as varchar(900)) as c_tooltip,
        cast('NCIt:C25185' as varchar(50)) as c_basecode,
        cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C25185' as text) as c_comment
+)
+,
+course_of_disease as (
+select 2 as c_hlevel,
+       cast($$\Clinical Course of Disease\C38155\$$  as varchar(700)) as c_fullname, 
+       cast('Recurrent Disease' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Clinical Course of Disease\C38155\$$ as varchar(700)) as c_dimcode,
+       cast('The return of a disease after a period of remission.' as varchar(900)) as c_tooltip,
+       cast('NCIt:C38155' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C38155' as text) as c_comment
+union
+select 2 as c_hlevel,
+       cast($$\Clinical Course of Disease\C40413\$$  as varchar(700)) as c_fullname, 
+       cast('No Evidence of Disease' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Clinical Course of Disease\C40413\$$ as varchar(700)) as c_dimcode,
+       cast('An absence of detectable disease.' as varchar(900)) as c_tooltip,
+       cast('NCIt:C40413' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C40413' as text) as c_comment
 )
 ,
 survival as (
@@ -473,6 +505,8 @@ select * from survival cross join consts
 union
 select * from gender_tree cross join consts
 union
+select * from course_of_disease cross join consts
+union
 select 
 c_hlevel, c_fullname, c_name, c_visualattributes, c_metadataxml, c_dimcode, c_tooltip, 
        c_basecode, c_comment,
@@ -555,6 +589,17 @@ values (
 NULL , 'NCIt:C15220' , NULL, 
 'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' , 
 'LIKE' , $$\Primary Diagnosis\$$ ,  NULL, 'The investigation, analysis and recognition of the presence and nature of disease, condition, or injury from expressed signs and symptoms; also, the scientific determination of any kind; the concise results of such an investigation.' , 
+current_timestamp , current_timestamp , NULL, NULL) ;
+
+insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_access, c_hlevel, c_fullname, c_name, c_synonym_cd, 
+      c_visualattributes, c_totalnum, c_basecode, c_metadataxml, c_facttablecolumn , c_dimtablename,c_columnname, 
+      c_columndatatype, c_operator, c_dimcode, c_comment, c_tooltip, c_entry_date, c_change_date, c_status_cd, valuetype_cd )
+values (
+'DI3_CLINICAL_COURSE_OF_DISEASE', 'DI3', 'N' , 1 , $$\Clinical Course of Disease\$$ , 
+'Clinical Course of Disease' , 'N'  , 'FA' , 
+NULL , 'NCIt:C35461' , NULL, 
+'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' , 
+'LIKE' , $$\Clinical Course of Disease\$$ ,  NULL, 'A description of the series of events, including signs and symptoms, that define the course of a chronic disease over time.' , 
 current_timestamp , current_timestamp , NULL, NULL) ;
 
 insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_access, c_hlevel, c_fullname, c_name, c_synonym_cd, 
