@@ -159,6 +159,28 @@ select 2 as c_hlevel,
        cast('NCIt:C25717+C17998' as varchar(50)) as c_basecode,
        cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C17998' as text) as c_comment
 ),
+datasets as (
+select 2 as c_hlevel,
+       cast($$\Data Set\I-Spy1\$$  as varchar(700)) as c_fullname, 
+       cast('I-Spy1' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Data Set\I-Spy1\$$ as varchar(700)) as c_dimcode,
+       cast('I-Spy1' as varchar(900)) as c_tooltip,
+       cast('NCIt:C47824|I-Spy1' as varchar(50)) as c_basecode,
+       cast(NULL as text) as c_comment
+union
+select 2 as c_hlevel,
+       cast($$\Data Set\Breast Diagnosis\$$  as varchar(700)) as c_fullname, 
+       cast('Breast Diagnosis' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Data Set\Breast Diagnosis\$$ as varchar(700)) as c_dimcode,
+       cast('Breast Diagnosis' as varchar(900)) as c_tooltip,
+       cast('NCIt:C47824|Breast Diagnosis' as varchar(50)) as c_basecode,
+       cast(NULL as text) as c_comment
+)
+,
 anatomic_sites as (
 select 2 as c_hlevel,
        cast($$\Anatomic Site\C12971\$$  as varchar(700)) as c_fullname, 
@@ -506,6 +528,8 @@ union
 select * from gender_tree cross join consts
 union
 select * from course_of_disease cross join consts
+union
+select * from datasets cross join consts
 union
 select 
 c_hlevel, c_fullname, c_name, c_visualattributes, c_metadataxml, c_dimcode, c_tooltip, 
