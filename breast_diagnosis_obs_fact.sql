@@ -72,6 +72,27 @@ organ  as (
     tcia_breast_clinical_data i where i.breast_dx_case is not null and i.path_which_breast in ('L', 'R')
     )
 ,
+estrogen_receptor as (
+select
+cast(breast_dx_case as varchar(200)) as patient_ide,
+       'fabricated_for_' || breast_dx_case as encounter_ide,
+  case
+    when i.path_er like '%neg%' then 'NCIt:C15493' /* Negative */
+    when i.path_er like '%pos%'  then 'NCIt:C15492' /* Positive */
+    else 'NCIt:C15495' /* Unknown */
+  end as concept_cd,
+  current_timestamp as download_date,
+  cast(NULL as varchar(50)) as valtype_cd,
+  cast(NULL as varchar(255)) as tval_char,
+  cast(NULL as decimal(18,5)) as nval_num,
+  cast(NULL as varchar(50)) as units_cd,
+  current_timestamp as import_date,
+  cast('TCIA_ISPY1_Clinical' as varchar(50)) as sourcesystem_cd
+  from
+  tcia_breast_clinical_data i where i.breast_dx_case is not null
+  )
+,
+
 breast_diagnosis_facts as (
 
 select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd
@@ -82,6 +103,9 @@ from organ
 union
 select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd
 from laterality  
+union
+select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd
+from estrogen_receptor 
 )
 
 select * from breast_diagnosis_facts cross join consts;
