@@ -365,6 +365,26 @@ select 2 as c_hlevel,
        cast('A carcinoma arising from the breast, most commonly the terminal ductal-lobular unit. It is the most common malignant tumor in females. Risk factors include country of birth, family history, menstrual and reproductive history, fibrocystic disease and epithelial hyperplasia, exogenous estrogens, contraceptive agents, and ionizing radiation. The vast majority of breast carcinomas are adenocarcinomas (ductal or lobular). Breast carcinoma spreads by direct invasion, by the lymphatic route, and by the blood vessel route. The most common site of lymph node involvement is the axilla.' as varchar(900)) as c_tooltip,
        cast('NCIt:C4872' as varchar(50)) as c_basecode,
        cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C4872' as text) as c_comment
+union
+select 2 as c_hlevel,
+       cast($$\Primary Diagnosis\C35857\$$  as varchar(700)) as c_fullname, 
+       cast('Stromal Hyperplasia' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Primary Diagnosis\C35857\$$ as varchar(700)) as c_dimcode,
+       cast('Stromal Hyperplasia' as varchar(900)) as c_tooltip,
+       cast('NCIt:C35857' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C35857' as text) as c_comment
+union
+select 2 as c_hlevel,
+       cast($$\Primary Diagnosis\C3744\$$  as varchar(700)) as c_fullname, 
+       cast('Breast Fibroadenoma' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Primary Diagnosis\C3744\$$ as varchar(700)) as c_dimcode,
+       cast('A benign tumor of the breast characterized by the presence of stromal and epithelial elements. It presents as a painless, solitary, slow growing, firm, and mobile mass. It is the most common benign breast lesion. It usually occurs in women of childbearing age. The majority of fibroadenomas do not recur after complete excision. A slightly increased risk of developing cancer within fibroadenomas or in the breast tissue of patients previously treated for fibroadenomas has been reported.' as varchar(900)) as c_tooltip,
+       cast('NCIt:C3744' as varchar(50)) as c_basecode,
+       cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C3744' as text) as c_comment
 )
 ,
 age as (
