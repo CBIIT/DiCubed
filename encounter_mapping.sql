@@ -60,7 +60,7 @@ insert into di3crcdata.encounter_mapping(encounter_ide, encounter_ide_source, pr
          cast(d.bcr_patient_barcode as varchar) as patient_ide, 
         'nwc_org_clinical_patient_brca' as patient_ide_source, 
          'Active' as encounter_ide_status,  current_timestamp as upload_date, d.form_completion_date as download_date, current_timestamp as update_date,
-         'CIA_TCGA-BRCA-Clinical_Patient_BRCA' as sourcesystem_cd, upload_id_v as upload_id 
+         'TCIA_TCGA-BRCA-Clinical_Patient_BRCA' as sourcesystem_cd, upload_id_v as upload_id 
 from di3sources.nwc_org_clinical_patient_brca   d where d.bcr_patient_barcode is not null;   
 
 select nextval('di3crcdata.upload_status_upload_id_seq') into upload_id_v;
@@ -74,7 +74,7 @@ insert into di3crcdata.encounter_mapping(encounter_ide, encounter_ide_source, pr
          cast(d.bcr_patient_barcode as varchar) as patient_ide, 
         'nwc_org_clinical_patient_brca' as patient_ide_source, 
          'Active' as encounter_ide_status,  current_timestamp as upload_date, d.form_completion_date as download_date, current_timestamp as update_date,
-         'CIA_TCGA-BRCA-Clinical_Patient_BRCA' as sourcesystem_cd, upload_id_v as upload_id 
+         'TCIA_TCGA-BRCA-Clinical_Patient_BRCA' as sourcesystem_cd, upload_id_v as upload_id 
 from di3sources.nwc_org_clinical_follow_up_v4_0_brca   d where d.bcr_patient_barcode is not null;   
 
 END;
