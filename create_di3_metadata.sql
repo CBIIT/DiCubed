@@ -156,7 +156,7 @@ select 2 as c_hlevel,
        cast(NULL as text) as c_metadataxml,
        cast($$\Survival Status\C25717+C17998\$$ as varchar(700)) as c_dimcode,
        cast('Unknown survival status' as varchar(900)) as c_tooltip,
-       cast('NCIt:C25717+C17998' as varchar(50)) as c_basecode,
+       cast('NCIt:C25717+NCIt:C17998' as varchar(50)) as c_basecode,
        cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C17998' as text) as c_comment
 ),
 datasets as (
