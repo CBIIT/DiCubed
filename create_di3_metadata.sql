@@ -179,6 +179,16 @@ select 2 as c_hlevel,
        cast('Breast Diagnosis' as varchar(900)) as c_tooltip,
        cast('NCIt:C47824|Breast Diagnosis' as varchar(50)) as c_basecode,
        cast(NULL as text) as c_comment
+union
+select 2 as c_hlevel,
+       cast($$\Data Set\Breast-MRI-NACT-Pilot\$$  as varchar(700)) as c_fullname, 
+       cast('Breast-MRI-NACT-Pilot' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Data Set\Breast-MRI-NACT-Pilot\$$ as varchar(700)) as c_dimcode,
+       cast('Breast-MRI-NACT-Pilot: This collection contains longitudinal DCE MRI studies of 64 patients undergoing neoadjuvant chemotherapy (NACT) for invasive breast cancer. ' as varchar(900)) as c_tooltip,
+       cast('NCIt:C47824|Breast-MRI-NACT-Pilot' as varchar(50)) as c_basecode,
+       cast(NULL as text) as c_comment
 )
 ,
 anatomic_sites as (
