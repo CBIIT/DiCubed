@@ -58,6 +58,20 @@ select cast(d.bcr_patient_barcode as varchar) as patient_ide,
        'TCIA_TCGA-BRCA-Clinical_Patient_BRCA' as sourcesystem_cd, 
        upload_id_v  as upload_id
    from di3sources.nwc_org_clinical_patient_brca d where d.bcr_patient_barcode is not null;
+
+select nextval('di3crcdata.upload_status_upload_id_seq') into upload_id_v;
+
+insert into di3crcdata.patient_mapping(patient_ide, patient_ide_source, patient_num, patient_ide_status, project_id, upload_date, update_date, download_date, sourcesystem_cd, upload_id)
+with ivy_gap_pats as (select distinct patient_id from ivy_report) 
+select distinct cast(d.patient_id as varchar) as patient_ide, 
+       'ivy_report' as patient_ide_source, 
+        nextval('patient_num_seq') as patient_num, 
+        'Active' as patient_ide_status, 
+        'Dicubed' as project_id, 
+       current_timestamp as upload_date, current_timestamp as download_date, current_timestamp as update_date, 
+       'IVY_GAP-ivy_report' as sourcesystem_cd, 
+       upload_id_v  as upload_id
+   from ivy_gap_pats d where d.patient_id is not null;
 END;
 $body$
 LANGUAGE PLPGSQL;
