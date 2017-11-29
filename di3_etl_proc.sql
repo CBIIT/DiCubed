@@ -5,6 +5,12 @@ AS $body$
 DECLARE ret_stuff text;
 BEGIN
 
+delete from di3crcdata.patient_mapping;
+select dicubed_patient_mapping() into ret_stuff;
+
+delete from di3crcdata.encounter_mapping;
+select dicubed_encounter_mapping() into ret_stuff;
+
 delete from di3crcdata.observation_fact;
 
 select ispy_obs_fact_proc() into ret_stuff;
@@ -18,6 +24,9 @@ select load_fact_table('di3crcdata.observation_fact', 'shared_clinical_obs_fact'
 
 select tcia_tcga_obs_fact_proc() into ret_stuff;
 select load_fact_table('di3crcdata.observation_fact', 'tcia_tcga_obs_fact') into ret_stuff;
+
+select ivy_report_obs_fact_proc() into ret_stuff;
+select load_fact_table('di3crcdata.observation_fact', 'ivy_report_obs_fact') into ret_stuff; 
 
 delete from di3crcdata.concept_dimension;
 select load_concept_dim('DI3') into ret_stuff;
