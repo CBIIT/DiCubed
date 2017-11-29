@@ -2,8 +2,8 @@ CREATE OR REPLACE FUNCTION load_fact_table(fact_table_name text,  proto_fact_tab
 RETURNS void AS $body$
 BEGIN
 
-    execute '
-    insert into ' || fact_table_name || $$ (patient_num, encounter_num, concept_cd,
+    execute 
+    $$ insert into $$ || fact_table_name || $$ (patient_num, encounter_num, concept_cd,
                                          provider_id, start_Date, modifier_cd, instance_num, 
                                          valtype_cd, tval_char, nval_num, valueflag_cd, quantity_num, 
                                          units_cd, end_date, location_cd, confidence_num, update_date, download_date, 
@@ -31,7 +31,7 @@ BEGIN
               cast(i.sourcesystem_cd as varchar) as sourcesystem_cd,
               10 as upload_id
               from $$|| proto_fact_table_name ||$$ i 
-              join di3crcdata.patient_mapping pm on i.patient_ide = pm.patient_ide
+              join di3crcdata.patient_mapping pm on i.patient_ide = pm.patient_ide and i.sourcesystem_cd = pm.sourcesystem_cd 
               join di3crcdata.encounter_mapping em on i.encounter_ide = em.encounter_ide
               where i.concept_cd is not null
 
