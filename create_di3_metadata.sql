@@ -199,6 +199,16 @@ select 2 as c_hlevel,
        cast($$The Cancer Genome Atlas Breast Invasive Carcinoma (TCGA-BRCA) data collection is part of a larger effort to build a research community focused on connecting cancer phenotypes to genotypes by providing clinical images matched to subjects from The Cancer Genome Atlas (TCGA). Clinical, genetic, and pathological data resides in the Genomic Data Commons (GDC) Data Portal while the radiological data is stored on The Cancer Imaging Archive (TCIA). $$  as varchar(900)) as c_tooltip,
        cast('NCIt:C47824|TCGA-BRCA' as varchar(50)) as c_basecode,
        cast(NULL as text) as c_comment
+union
+select 2 as c_hlevel,
+       cast($$\Data Set\Ivy-Gap\$$  as varchar(700)) as c_fullname, 
+       cast('Ivy-Gap' as varchar(2000)) as c_name,
+       cast('LA' as varchar(3)) as c_visualattributes,
+       cast(NULL as text) as c_metadataxml,
+       cast($$\Data Set\Ivy-Gap\$$ as varchar(700)) as c_dimcode,
+       cast($$This data collection consists of MRI/CT scan data for brain tumor patients that form the cohort for the resource Ivy Glioblastoma Atlast Project (Ivy GAP). There are 390 studies for 39 patients that include pre-surgery, post-surgery and follow up scans. The Ivy Glioblastoma Atlas Project (Ivy GAP) is a collaborative partnership between the Ben and Catherine Ivy Foundation, which generously provided the financial support, the Allen Institute for Brain Science, and the Ben and Catherine Ivy Center for Advanced Brain Tumor Treatment. The goal of the project is to provide online resources to scientists and physicians dedicated to the development of innovative treatments and diagnostics that will enhance the quality of life and survival of patients with brain cancer.$$  as varchar(900)) as c_tooltip,
+       cast('NCIt:C47824|Ivy-Gap' as varchar(50)) as c_basecode,
+       cast('https://wiki.cancerimagingarchive.net/display/Public/Ivy+GAP' as text) as c_comment
 )
 ,
 anatomic_sites as (
