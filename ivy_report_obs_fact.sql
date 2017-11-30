@@ -74,6 +74,86 @@ dataset  as (
     ivy_gap_pat_info i where i.patient_id is not null
     )
 ,
+ organ  as (
+  select
+  cast(patient_id as varchar(200)) as patient_ide,
+         'fabricated_for_' || patient_id as encounter_ide,
+    
+    cast('NCIt:C12439'as varchar(50)) as  concept_cd,   /* implied brain */
+    current_timestamp as download_date,
+    cast(NULL as varchar(50)) as valtype_cd,
+    cast(NULL as varchar(255)) as tval_char,
+    cast(NULL as decimal(18,5)) as nval_num,
+    cast(NULL as varchar(50)) as units_cd,
+    current_timestamp as import_date,
+    cast('IVY_GAP-ivy_report' as varchar(50)) as sourcesystem_cd
+    from
+    ivy_gap_pat_info i where i.patient_id is not null
+    )
+,
+survival_status as (
+  select
+  cast(patient_id as varchar(200)) as patient_ide,
+         'fabricated_for_' || patient_id as encounter_ide,
+    case
+      when i.cause_of_death = 'Deceased due to tumor progression' then 'NCIt:C28554' /* Dead  */
+      else cast('NCIt:C25717+NCIt:C17998' as varchar(50)) /*unknown*/
+      end as concept_cd,
+    cast(NULL as varchar(255)) as tval_char,
+    current_timestamp as download_date,
+    cast(NULL as varchar(50)) as valtype_cd,
+    cast(NULL as decimal(18,5)) as nval_num,
+    cast(NULL as varchar(50)) as units_cd,
+    current_timestamp as import_date,
+    cast('IVY_GAP-ivy_report' as varchar(50)) as sourcesystem_cd
+    from
+    ivy_gap_pat_info i where i.patient_id is not null
+    )
+,
+/*
+ NOTE - because ivy gap has potentially > 1 tumor noted per patient and 
+ just have glioblastoma in our initial prototype, have to look by substring 
+ to see if it is there and extract one per patient */
+glio_pats as (
+select distinct patient_id from ivy_report where position('glioblastoma' in lower(glioblastoma)) > 0
+)
+,
+glioblastomas as (
+  select
+  cast(patient_id as varchar(200)) as patient_ide,
+         'fabricated_for_' || patient_id as encounter_ide,
+    cast('NCIt:C3058' as varchar(50)) as concept_cd, 
+    cast(NULL as varchar(255)) as tval_char,
+    current_timestamp as download_date,
+    cast(NULL as varchar(50)) as valtype_cd,
+    cast(NULL as decimal(18,5)) as nval_num,
+    cast(NULL as varchar(50)) as units_cd,
+    current_timestamp as import_date,
+    cast('IVY_GAP-ivy_report' as varchar(50)) as sourcesystem_cd
+    from
+    glio_pats i where i.patient_id is not null
+    )
+,
+astro_pats as (
+select distinct patient_id from ivy_report where position('anaplastic astrocytoma' in lower(glioblastoma)) > 0
+)
+,
+astrocytomas as (
+  select
+  cast(patient_id as varchar(200)) as patient_ide,
+         'fabricated_for_' || patient_id as encounter_ide,
+    cast('NCIt:C9477' as varchar(50)) as concept_cd, 
+    cast(NULL as varchar(255)) as tval_char,
+    current_timestamp as download_date,
+    cast(NULL as varchar(50)) as valtype_cd,
+    cast(NULL as decimal(18,5)) as nval_num,
+    cast(NULL as varchar(50)) as units_cd,
+    current_timestamp as import_date,
+    cast('IVY_GAP-ivy_report' as varchar(50)) as sourcesystem_cd
+    from
+    astro_pats i where i.patient_id is not null
+    )
+,
 ivy_report_data as (
 select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd
 from ages
@@ -83,6 +163,18 @@ from gender
 union
 select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd
 from dataset 
+union
+select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd
+from organ 
+union
+select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd
+from survival_status 
+union
+select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd
+from glioblastomas 
+union
+select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd
+from astrocytomas 
 )
 select * from ivy_report_data cross join consts;
 
