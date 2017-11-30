@@ -30,6 +30,7 @@ select load_fact_table('di3crcdata.observation_fact', 'ivy_report_obs_fact') int
 
 delete from di3crcdata.concept_dimension;
 select load_concept_dim('DI3') into ret_stuff;
+select load_concept_dim('NCI_THESAURUS') into ret_stuff;
 return ret_stuff;
 END;
 $body$
