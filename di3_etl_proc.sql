@@ -28,6 +28,8 @@ select load_fact_table('di3crcdata.observation_fact', 'tcia_tcga_obs_fact') into
 select ivy_report_obs_fact_proc() into ret_stuff;
 select load_fact_table('di3crcdata.observation_fact', 'ivy_report_obs_fact') into ret_stuff; 
 
+select load_patient_dimension() into ret_stuff;
+
 delete from di3crcdata.concept_dimension;
 select load_concept_dim('DI3') into ret_stuff;
 select load_concept_dim('NCI_THESAURUS') into ret_stuff;
