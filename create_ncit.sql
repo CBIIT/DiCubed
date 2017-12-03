@@ -162,7 +162,7 @@ insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_acces
       c_columndatatype, c_operator, c_dimcode, c_comment, c_tooltip, c_entry_date, c_change_date, c_status_cd, valuetype_cd )
 values (
 'DI3_NCIT', 'NCI_THESAURUS', 'N' , 0 , $$\NCIt\$$ ,
-'NCI Thesaurus' , 'N'  , 'CA' ,
+'NCI Thesaurus' , 'N'  , 'CH' ,
 NULL , 'NCIt:TOP' , NULL,
 'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' ,
 'LIKE' , $$\NCIt\$$ ,  NULL, 'NCI Thesaurus V17.10e' ,
