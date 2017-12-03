@@ -77,7 +77,7 @@ select 1 as c_hlevel,
 union
 select 1 as c_hlevel,
        cast($$\Survival Status\$$  as varchar(700)) as c_fullname, 
-       cast('Survival Status' as varchar(2000)) as c_name,
+       cast('Vital Status' as varchar(2000)) as c_name,
        cast('FA' as varchar(3)) as c_visualattributes,
        cast(NULL as text) as c_metadataxml,
        cast($$\Survival Status\$$ as varchar(700)) as c_dimcode,
@@ -155,7 +155,7 @@ select 2 as c_hlevel,
        cast('LA' as varchar(3)) as c_visualattributes,
        cast(NULL as text) as c_metadataxml,
        cast($$\Survival Status\C25717+C17998\$$ as varchar(700)) as c_dimcode,
-       cast('Unknown survival status' as varchar(900)) as c_tooltip,
+       cast('Unknown vital status' as varchar(900)) as c_tooltip,
        cast('NCIt:C25717+NCIt:C17998' as varchar(50)) as c_basecode,
        cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C17998' as text) as c_comment
 ),
@@ -616,10 +616,10 @@ insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_acces
       c_columndatatype, c_operator, c_dimcode, c_comment, c_tooltip, c_entry_date, c_change_date, c_status_cd, valuetype_cd )
 values (
 'DI3_SURV', 'DI3', 'N' , 1 , $$\Survival Status\$$ , 
-'Survival Status' , 'N'  , 'FA' , 
+'Vital Status' , 'N'  , 'FA' , 
 NULL , 'NCIt:C25717' , NULL, 
 'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' , 
-'LIKE' , $$\Survival Status\$$ ,  NULL, 'The state or condition of being living or deceased; also includes the case where the vital status is unknown.' , 
+'LIKE' , $$\Vital Status\$$ ,  NULL, 'The state or condition of being living or deceased; also includes the case where the vital status is unknown.' , 
 current_timestamp , current_timestamp , NULL, NULL) ;
 
 insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_access, c_hlevel, c_fullname, c_name, c_synonym_cd, 
