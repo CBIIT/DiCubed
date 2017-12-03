@@ -32,7 +32,7 @@ BEGIN
               10 as upload_id
               from $$|| proto_fact_table_name ||$$ i 
               join di3crcdata.patient_mapping pm on i.patient_ide = pm.patient_ide and i.sourcesystem_cd = pm.sourcesystem_cd 
-              join di3crcdata.encounter_mapping em on i.encounter_ide = em.encounter_ide
+              join di3crcdata.encounter_mapping em on i.encounter_ide = em.encounter_ide and i.sourcesystem_cd = em.sourcesystem_cd
               where i.concept_cd is not null
 
  $$;

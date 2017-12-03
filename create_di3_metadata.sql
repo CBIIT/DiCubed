@@ -134,7 +134,7 @@ select 2 as c_hlevel,
        cast('Dead' as varchar(2000)) as c_name,
        cast('LA' as varchar(3)) as c_visualattributes,
        cast(NULL as text) as c_metadataxml,
-       cast($$\Survival Status\C28554$$ as varchar(700)) as c_dimcode,
+       cast($$\Survival Status\C28554\$$ as varchar(700)) as c_dimcode,
        cast('The absence of life or state of being dead. (NCI)' as varchar(900)) as c_tooltip,
        cast('NCIt:C28554' as varchar(50)) as c_basecode,
        cast('https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C28554' as text) as c_comment
@@ -619,7 +619,7 @@ values (
 'Vital Status' , 'N'  , 'FA' , 
 NULL , 'NCIt:C25717' , NULL, 
 'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' , 
-'LIKE' , $$\Vital Status\$$ ,  NULL, 'The state or condition of being living or deceased; also includes the case where the vital status is unknown.' , 
+'LIKE' , $$\Survival Status\$$ ,  NULL, 'The state or condition of being living or deceased; also includes the case where the vital status is unknown.' , 
 current_timestamp , current_timestamp , NULL, NULL) ;
 
 insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_access, c_hlevel, c_fullname, c_name, c_synonym_cd, 

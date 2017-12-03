@@ -128,7 +128,7 @@ cast(subjectid as varchar(200)) as patient_ide,
          'fabricated_for_' || subjectid as encounter_ide,
     case
       when i.sstat = 7 then 'NCIt:C37987' /* Alive  */
-      when i.sstat = 8 then 'NCIt:C28554' /* Positive */
+      when i.sstat = 8 then 'NCIt:C28554' /* Dead */
       when i.sstat = 9 then 'NCIt:C48227' /* Lost to followup */
       else 'NCIt:C25717+NCIt:17998' /*unknown*/
       end as concept_cd, 

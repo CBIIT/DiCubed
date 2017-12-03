@@ -19,6 +19,21 @@ select cast(d.subjectid as varchar) as patient_ide,
        'TCIA_ISPY1_Clinical' as sourcesystem_cd, 
        upload_id_v  as upload_id
    from di3sources.i_spy_tcia_patient_clinical_subset d where d.subjectid is not null;
+ 
+/* Now make sure the ispy outcome mappings work right */
+ 
+select nextval('di3crcdata.upload_status_upload_id_seq') into upload_id_v;
+
+insert into di3crcdata.patient_mapping(patient_ide, patient_ide_source, patient_num, patient_ide_status, project_id, upload_date, update_date, download_date, sourcesystem_cd, upload_id)
+select  d.patient_ide, 
+       'i_spy_tcia_patient_outcomes_subset' as patient_ide_source, 
+        d.patient_num as patient_num, 
+        'Active' as patient_ide_status, 
+        'Dicubed' as project_id, 
+       current_timestamp as upload_date, current_timestamp as download_date, current_timestamp as update_date, 
+       'TCIA_ISPY1_Outcome' as sourcesystem_cd, 
+       upload_id_v  as upload_id
+   from di3crcdata.patient_mapping d where d.sourcesystem_cd = 'TCIA_ISPY1_Clinical';
   
 select nextval('di3crcdata.upload_status_upload_id_seq') into upload_id_v;
 
@@ -58,6 +73,18 @@ select cast(d.bcr_patient_barcode as varchar) as patient_ide,
        'TCIA_TCGA-BRCA-Clinical_Patient_BRCA' as sourcesystem_cd, 
        upload_id_v  as upload_id
    from di3sources.nwc_org_clinical_patient_brca d where d.bcr_patient_barcode is not null;
+
+
+insert into di3crcdata.patient_mapping(patient_ide, patient_ide_source, patient_num, patient_ide_status, project_id, upload_date, update_date, download_date, sourcesystem_cd, upload_id)
+select  patient_ide, 
+       'nwc_org_clinical_follow_up_v4_0_brca ' as patient_ide_source, 
+         patient_num, 
+        'Active' as patient_ide_status, 
+        'Dicubed' as project_id, 
+       current_timestamp as upload_date, current_timestamp as download_date,  update_date, 
+       'TCIA_TCGA-BRCA-follow_up_BRCA' as sourcesystem_cd, 
+       upload_id_v  as upload_id
+   from di3crcdata.patient_mapping  d where d.sourcesystem_cd = 'TCIA_TCGA-BRCA-Clinical_Patient_BRCA';
 
 select nextval('di3crcdata.upload_status_upload_id_seq') into upload_id_v;
 

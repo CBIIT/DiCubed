@@ -5,8 +5,7 @@ AS $body$
 DECLARE ret_stuff text;
 BEGIN
 
-delete from di3crcdata.patient_dimension;
-insert into di3crcdata.patient_dimension(patient_num, sex_cd, age_in_years_num,vital_status_cd,race_cd,sourcesystem_cd)
+insert into di3crcdata.patient_dimension(patient_num, sex_cd, age_in_years_num,vital_status_cd,race_cd)
 with sex as 
 (select patient_num, 'Female' as sex_cd from di3crcdata.observation_fact where concept_cd = 'NCIt:C16576'
 union 
@@ -28,10 +27,10 @@ and f.concept_cd in ('NCIt:C41260', 'NCIt:C41261', 'NCIt:C16352', 'NCIt:C41259',
 )
 ,
 pats as
-(select patient_num, sourcesystem_cd from di3crcdata.patient_mapping
+(select distinct patient_num from di3crcdata.patient_mapping
 )
 
-select p.patient_num, s.sex_cd, a.age_in_years_num , v.vital_status_cd, r.race_cd, p.sourcesystem_cd
+select p.patient_num, s.sex_cd, a.age_in_years_num , v.vital_status_cd, r.race_cd
 from pats p 
 left outer join sex s on p.patient_num = s.patient_num 
 left outer join age a on p.patient_num = a.patient_num

@@ -108,7 +108,11 @@ select
   cast(NULL as decimal(18,5)) as nval_num,
   cast(NULL as varchar(50)) as units_cd,
   current_timestamp as import_date,
-    cast('TCIA_TCGA-BRCA-Clinical_Patient_BRCA' as varchar(50)) as sourcesystem_cd,
+    case 
+      when v4.bcr_followup_barcode is not NULL then 'TCIA_TCGA-BRCA-follow_up_BRCA' 
+       else 'TCIA_TCGA-BRCA-Clinical_Patient_BRCA'
+    end as sourcesystem_cd,
+    /*cast('TCIA_TCGA-BRCA-follow_up_BRCA' as varchar(50)) as sourcesystem_cd,*/
   coalesce(v4.form_completion_date, i.form_completion_date) as start_date
   from
     nwc_org_clinical_patient_brca i left outer join nwc_org_clinical_follow_up_v4_0_brca v4 on i.bcr_patient_barcode = v4.bcr_patient_barcode
@@ -244,9 +248,9 @@ union
 select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd, start_date 
 from vital_status_alive_dead 
 union
-select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd, start_date 
+/* select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd, start_date 
 from lost_to_followup 
-union
+union */
 select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd, start_date 
 from er_status 
 union
