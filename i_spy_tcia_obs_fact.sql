@@ -52,7 +52,7 @@ cast(subjectid as varchar(200)) as patient_ide,
     when i.erpos = 0 then 'NCIt:C15493' /* Negative */
     when i.erpos = 1 then 'NCIt:C15492' /* Positive */
     when i.erpos = 2 then 'NCIt:C15495' /* Unknown */
-    else cast(NULL as varchar(50))
+    else 'NCIt:C15495' 
   end as concept_cd,
   to_date(i.dataextractdt, 'MM/DD/YY') as download_date,
   cast(NULL as varchar(50)) as valtype_cd,
@@ -93,7 +93,7 @@ cast(subjectid as varchar(200)) as patient_ide,
     case
       when i.her2mostpos = 0 then 'NCIt:C68749' /* Negative */
       when i.her2mostpos = 1 then 'NCIt:C68748' /* Positive */
-      else 'NCIt:68750' /*unknown*/
+      else 'NCIt:C68750' /*unknown*/
     end as concept_cd,
     to_date(i.dataextractdt, 'MM/DD/YY') as download_date,
     cast(NULL as varchar(50)) as valtype_cd,
