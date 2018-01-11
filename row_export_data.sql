@@ -87,14 +87,22 @@ select
  join vital_concepts rc on f.concept_cd = rc.c_basecode             
                ),
   pdx_concepts as 
+
+  /***********************************************************************************************/
+  /* Note that because a patient may have more than 1 pdx value we put them in a comma delimited */
+  /* string to keep our export format into one row per patient.                                  */
+  /***********************************************************************************************/
+ 
   ( select c_basecode, c_name  from di3metadata.di3 where c_fullname like $$\\Primary Diagnosis\\%$$ ),
   pdx_facts as (select 
-         f.patient_num,
-         f.concept_cd as pdx_ncit,
-         rc.c_name as pdx_value
-  from di3crcdata.observation_fact f  
- join pdx_concepts rc on f.concept_cd = rc.c_basecode             
+  f.patient_num,
+         string_agg(f.concept_cd,',') as pdx_ncit,
+         string_agg(rc.c_name, ',') as pdx_value
+  from di3crcdata.observation_fact f 
+ join pdx_concepts rc on f.concept_cd = rc.c_basecode
+                group by f.patient_num
                ),
+
   course_of_disease_concepts as 
   ( select c_basecode, c_name  from di3metadata.di3 where c_fullname like $$\\Clinical Course of Disease\\%$$ ),
   course_of_disease_facts as (select 
