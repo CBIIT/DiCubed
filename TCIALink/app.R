@@ -1,4 +1,7 @@
-
+#
+# This Shiny app is the UI/Data for the DICUBED TCIALink i2b2 plugin.
+# 
+#
 ui <- fluidPage(
   
 
@@ -66,15 +69,7 @@ with
     dbDisconnect(con)
   
   })
-
   
-
-
-  
-  # output$table <- df_postgres
-  
-  
- 
   
 }
 
