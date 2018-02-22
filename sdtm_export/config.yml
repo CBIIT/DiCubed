@@ -1,6 +1,0 @@
-default:
-    dbname: 'i2b2'
-    host: 'ncidb-d115.nci.nih.gov'
-    port: 5492
-    user: 'di3sources'
-    password: 'AFBhsPLr'
