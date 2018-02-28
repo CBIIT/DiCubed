@@ -18,7 +18,8 @@ ui <- fluidPage(
     
    
     ,
-    downloadButton("exportSDTM","Export to SDTM")
+    downloadButton("exportSDTM","Export to SDTM"),
+    downloadButton("exportCSV","Export to CSV")
   ),
   
   # Main panel for displaying outputs ----
@@ -85,9 +86,7 @@ server <- function(input, output) {
   else ''
   end sex,
   case when race_value <> 'Unknown' then upper(race_value) else '' end race,
-  '<a href=http://public.cancerimagingarchive.net/ncia/externalPatientSearch.jsf?patientID=' || 
-  tcia_subject_id || ' target=\"_blank\">' || 'http://public.cancerimagingarchive.net/ncia/externalPatientSearch.jsf?patientID=' || 
-  tcia_subject_id || '</a>' as DMXFN
+  'http://public.cancerimagingarchive.net/ncia/externalPatientSearch.jsf?patientID=' || tcia_subject_id as DMXFN
   
   from di3sources.row_export_data where ", where_clause)
 
@@ -99,7 +98,7 @@ server <- function(input, output) {
                          'AGEU','SEX', 'RACE', 'DMXFN'
      )
   }
-  dm_dt <- datatable(dm_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', escape=FALSE,
+  dm_dt <- datatable(dm_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', escape=TRUE,
                       options = list( searching = TRUE, autoWidth=FALSE,
                                       scrollX=TRUE, fixedColumns=list(leftColumns=4)
                       )
@@ -209,7 +208,7 @@ server <- function(input, output) {
   
   mi_postgres <- dbGetQuery(con, sql_string)
   if(length(mi_postgres) > 0) {  
-    colnames(mi_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','MISEQ', 'MITESTCD', 'MISPEC', 'MILOC')
+    colnames(mi_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','MISEQ', 'MITESTCD', 'MITEST', 'MIORRES', 'MISPEC', 'MILOC')
   }
   mi_dt <- datatable(mi_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
                      options = list( searching = TRUE, autoWidth=FALSE,
@@ -267,11 +266,41 @@ server <- function(input, output) {
  
 
   output$exportSDTM <- downloadHandler (
-      filename = 'dm.xpt',
+      filename = 'dicubed_sdtm_xpt.zip',
       content = function(file ){
-        write.xport(dm_postgres, file=file)
-      }
+        tmpdir <- tempdir()
+        setwd(tempdir())
+        fs <- c("dm.xpt", "ds.xpt", "mi.xpt", "pr.xpt", "ss.xpt", "tu.xpt")
+        write.xport(dm_postgres, file="dm.xpt")
+        write.xport(ds_postgres, file="ds.xpt")
+        write.xport(mi_postgres, file="mi.xpt")
+        write.xport(pr_postgres, file="pr.xpt")
+        write.xport(ss_postgres, file="ss.xpt")
+        write.xport(tu_postgres, file="tu.xpt")
+        
+        zip(zipfile=file,files=fs)
+      }, 
+      contentType = "application/zip"
+      
       )
+  
+  output$exportCSV <- downloadHandler (
+    filename = 'dicubed_sdtm_csv.zip',
+    content = function(file ){
+      tmpdir <- tempdir()
+      setwd(tempdir())
+      fs <- c("dm.csv", "ds.csv", "mi.csv", "pr.csv", "ss.csv", "tu.csv")
+      write.csv(dm_postgres, "dm.csv")
+      write.csv(ds_postgres, "ds.csv")
+      write.csv(mi_postgres, "mi.csv")
+      write.csv(pr_postgres, "pr.csv")
+      write.csv(ss_postgres, "ss.csv")
+      write.csv(tu_postgres, "tu.csv")
+      
+      zip(zipfile=file,files=fs)
+    }, 
+     contentType = "application/zip"
+  )
   
   
   })
