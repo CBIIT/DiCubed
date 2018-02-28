@@ -28,12 +28,12 @@ ui <- fluidPage(
     tabsetPanel(type = "tabs",
                 tabPanel("DM",  DT::dataTableOutput("DM")),
                 tabPanel("DS", DT::dataTableOutput("DS")),
-                tabPanel("MI"),
+                tabPanel("MI", DT::dataTableOutput("MI")),
                 tabPanel("PR", DT::dataTableOutput("PR")),
                 tabPanel("RS"),
-                tabPanel("SS"),
+                tabPanel("SS", DT::dataTableOutput("SS")),
                 tabPanel("TR"),
-                tabPanel("TU")
+                tabPanel("TU",  DT::dataTableOutput("TU"))
     )
     
   )
@@ -46,6 +46,7 @@ server <- function(input, output) {
   library(DT)
   library(dplyr)
   library(config)
+  library(SASxport)
   observe({
   # read the config.yml file
  
@@ -140,7 +141,7 @@ server <- function(input, output) {
   }
   ds_dt <- datatable(ds_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
                      options = list( searching = TRUE, autoWidth=FALSE,
-                                     scrollX=TRUE, fixedColumns=list(leftColumns=3)
+                                     scrollX=TRUE, fixedColumns=list(leftColumns=4)
                      )
   )                   
   # Table of selected dataset ----
@@ -179,15 +180,100 @@ server <- function(input, output) {
   }
   pr_dt <- datatable(pr_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
                      options = list( searching = TRUE, autoWidth=FALSE,
-                                     scrollX=TRUE, fixedColumns=list(leftColumns=3)
+                                     scrollX=TRUE, fixedColumns=list(leftColumns=4)
                      )
   )                   
   # Table of selected dataset ----
   output$PR <- DT::renderDataTable(pr_dt)
   
+  progress$inc(4/10, detail= "MI")
+  sql_string <- paste("
+    with mi_data as (
+    select collection as studyid, 'MI' as domain, tcia_subject_id as USUBJID,  1 as miseq, 
+    'ESTRCPT' as mitestcd, 'Estrogen Receptor' as MITEST, er_value as MIORRES,
+  'TISSUE' as MISPEC, 'BREAST' as MILOC 
+  from di3sources.row_export_data where er_value is not null and (", where_clause , 
+ ") union 
+  select collection as studyid, 'MI' as domain, tcia_subject_id as USUBJID,  1 as miseq, 
+  'PROGESTR' as mitestcd, 'Progesterone Receptor' as MITEST, pr_value as MIORRES,
+  'TISSUE' as MISPEC, 'BREAST' as MILOC 
+  from di3sources.row_export_data where pr_value is not null and (" , where_clause, ") 
+  union 
+  select collection as studyid, 'MI' as domain, tcia_subject_id as USUBJID,  1 as miseq, 
+  'HER2' as mitestcd, 'Human Epidermal Growth Factor Receptor 2' as MITEST, her2_value as MIORRES,
+  'TISSUE' as MISPEC, 'BREAST' as MILOC 
+  from di3sources.row_export_data where her2_value is not null and (", where_clause, ") 
+  ) 
+  select studyid, domain, usubjid, miseq, mitestcd, mitest, miorres, mispec, miloc from mi_data 
+    order by studyid, usubjid, mitestcd")
+  
+  mi_postgres <- dbGetQuery(con, sql_string)
+  if(length(mi_postgres) > 0) {  
+    colnames(mi_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','MISEQ', 'MITESTCD', 'MISPEC', 'MILOC')
+  }
+  mi_dt <- datatable(mi_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
+                     options = list( searching = TRUE, autoWidth=FALSE,
+                                     scrollX=TRUE, fixedColumns=list(leftColumns=4)
+                     )
+  )                   
+  # Table of selected dataset ----
+  output$MI <- DT::renderDataTable(mi_dt)
+  
+  progress$inc(5/10, detail= "SS")
+  
+  sql_string <- paste(
+    "with ss_data as 
+   (select collection as studyid, cast('SS' as varchar(2)) as domain, tcia_subject_id as USUBJID,  1 as ssseq, 
+  cast('RFSIND' as varchar(20)) as sstestcd, cast('Recurrence-free survival indicator' as varchar(256)) as SSTEST, course_of_disease_value as SSORRES
+  from di3sources.row_export_data where course_of_disease_value is not null and (", where_clause, ") 
+  )
+    select studyid, domain, usubjid, ssseq, sstestcd, sstest, ssorres from ss_data ")
+  ss_postgres <- dbGetQuery(con, sql_string)
+  if(length(ss_postgres) > 0) {  
+    colnames(ss_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','SSSEQ', 'SSTESTCD', 'SSTEST', 'SSORRES')
+  }
+  ss_dt <- datatable(ss_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
+                     options = list( searching = TRUE, autoWidth=FALSE,
+                                     scrollX=TRUE, fixedColumns=list(leftColumns=4)
+                     )
+  )                   
+  # Table of selected dataset ----
+  output$SS <- DT::renderDataTable(ss_dt)
+  
+  progress$inc(5/10, detail= "TU")
+  
+  sql_string <- paste( " with tu_data as (
+         select collection as studyid, cast('TU' as varchar(2)) as domain, tcia_subject_id as USUBJID,  1 as tuseq, 
+  cast('TUMIDENT' as varchar(20)) as tutestcd, cast('Tumor Identification' as varchar(256)) as TUTEST, 
+                       anatomic_site_value as TULOC,  lat_value as TULAT  from di3sources.row_export_data  
+      where (anatomic_site_value is not null or lat_value is not null ) and  (", where_clause , ") )
+                       select studyid, domain, usubjid, tuseq, tutestcd, tutest, tuloc, tulat from tu_data"
+    
+                       )
+  tu_postgres <- dbGetQuery(con, sql_string)
+  if(length(tu_postgres) > 0) {  
+    colnames(tu_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TUSEQ', 'TUTESTCD', 'TUTEST', 'TULOC', 'TULAT')
+  }
+  tu_dt <- datatable(tu_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
+                     options = list( searching = TRUE, autoWidth=FALSE,
+                                     scrollX=TRUE, fixedColumns=list(leftColumns=4)
+                     )
+  )                   
+  # Table of selected dataset ----
+  output$TU <- DT::renderDataTable(tu_dt)
+  
   dbDisconnect(con)
   
-  })
+ 
 
+  output$exportSDTM <- downloadHandler (
+      filename = 'dm.xpt',
+      content = function(file ){
+        write.xport(dm_postgres, file=file)
+      }
+      )
+  
+  
+  })
 }
 shinyApp(ui, server)
