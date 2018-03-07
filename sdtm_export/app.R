@@ -33,8 +33,9 @@ ui <- fluidPage(
                 tabPanel("PR", DT::dataTableOutput("PR")),
                 tabPanel("RS"),
                 tabPanel("SS", DT::dataTableOutput("SS")),
-                tabPanel("TR"),
-                tabPanel("TU",  DT::dataTableOutput("TU"))
+                tabPanel("TU",  DT::dataTableOutput("TU")),
+                tabPanel("TR",  DT::dataTableOutput("TR"))
+                
     )
     
   )
@@ -261,6 +262,240 @@ server <- function(input, output) {
   # Table of selected dataset ----
   output$TU <- DT::renderDataTable(tu_dt)
   
+  
+  #######
+  # TR DOMAIN
+  #######
+  progress$inc(6/10, detail= "TR")
+  sql_string <- paste( "with
+  dataset_concepts as
+                       (select c_basecode, c_name  from di3metadata.di3 where c_fullname like '%Data Set%' ),
+                       dataset_facts as
+                       (
+                       select
+                       f.patient_num as patient_num,
+                       f.concept_cd,
+                       sc.c_name as collection
+                       from di3crcdata.observation_fact f
+                       join dataset_concepts sc on f.concept_cd = sc.c_basecode
+                       ),
+                       ucsf_ld_data as 
+                       (
+                       select patient_id, 1 as LD_num, mri_1 as mri, 
+                       'LDIAM' as TRTESTCD , 
+                       'Longest Diameter' as TRTEST,
+                       ld_1 as ld  ,
+                       cast(ld_1 as varchar(10)) as TRORRES,
+                       'cm' as TRORRESU,
+                       cast(ld_1 as varchar(10)) as TRSTRESC,
+                       ld_1 as TRSTRESN, 
+                       'cm' as TRSTRESU
+                       from di3sources.shared_clinical_and_rfs 
+                       where mri_1 = 'yes' and ld_1 is not null
+                       
+                       union 
+                       select patient_id, 2 as LD_num, mri_2 as mri, 
+                       'LDIAM' as TRTESTCD ,
+                       'Longest Diameter' as TRTEST,
+                       ld_2 as ld ,
+                       cast(ld_2 as varchar(10)) as TRORRES,
+                       'cm' as TRORRESU,
+                       cast(ld_2 as varchar(10)) as TRSTRESC,
+                       ld_2 as TRSTRESN, 
+                       'cm' as TRSTRESU
+                       from di3sources.shared_clinical_and_rfs 
+                       where mri_2 = 'yes' and ld_2 is not null  
+                       union
+                       select patient_id, 3 as LD_num, mri_3 as mri, 
+                       'LDIAM' as TRTESTCD ,
+                       'Longest Diameter' as TRTEST,
+                       ld_3 as ld,
+                       cast(ld_3 as varchar(10)) as TORRES ,
+                       'cm' as TRORRESU,
+                       cast(ld_3 as varchar(10)) as TRSTRESC,
+                       ld_3 as TRSTRESN, 
+                       'cm' as TRSTRESU
+                       
+                       from di3sources.shared_clinical_and_rfs 
+                       where mri_3 = 'yes' and ld_3 is not null    
+                       union 
+                       select patient_id, 4 as LD_num, mri_4 as mri, 'LDIAM' as TRTESTCD ,
+                       'Longest Diameter' as TRTEST,
+                       ld_4 as ld  ,
+                       cast(ld_4 as varchar(10))  as TORRES,
+                       'cm' as TRORRESU,
+                       cast(ld_4 as varchar(10)) as TRSTRESC,
+                       ld_4 as TRSTRESN, 
+                       'cm' as TRSTRESU
+                       from di3sources.shared_clinical_and_rfs 
+                       where mri_4 = 'yes' and ld_4 is not null       
+                       
+                       )
+                       ,
+                       ucsf_data_rownums as (
+                       select uld.*,
+                       dense_rank() over( partition by  uld.patient_id order by uld.ld_num) as rownum
+                       from ucsf_ld_data uld 
+                       )
+                       ,
+                       ucsf_study_data as (
+                       select distinct study.patient_num ,
+                       study.study_date, study.description, series.modality , pd.tcia_subject_id 
+                       ,
+                       dense_rank() over( partition by  study.patient_num order by study.study_date) as rownum
+                       
+                       from di3crcdata.dcm_study_dimension study
+                       join di3crcdata.dcm_series_dimension series on study.studyid = series.studyid
+                       join di3crcdata.patient_dimension pd on study.patient_num = pd.patient_num 
+                       where series.modality='MR' and pd.tcia_subject_id like 'UCSF%')
+                       ,
+                       
+                       all_ucsf_data as (
+                       select * from ucsf_data_rownums urd join ucsf_study_data usd 
+                       on translate(urd.patient_id , '_', '-') = usd.tcia_subject_id   and urd.rownum = usd.rownum  
+                       ),
+ ispy_ld_data as 
+                       (
+                       select subjectid, 'mri_ld_baseline' as mri,
+                       1 as ld_num,
+                       'LDIAM' as TRTESTCD , 
+                       'Longest Diameter' as TRTEST,
+                       mri_ld_baseline as ld  ,
+                       cast(mri_ld_baseline as varchar(10)) as TRORRES,
+                       'mm' as TRORRESU,
+                       cast(mri_ld_baseline as varchar(10)) as TRSTRESC,
+                       mri_ld_baseline as TRSTRESN, 
+                       'mm' as TRSTRESU
+                       from di3sources.i_spy_tcia_patient_clinical_subset
+                       where mri_ld_baseline is not null
+                       
+                       union 
+                       select subjectid, 'mri_ld_1_3dac' as mri,
+                       2 as ld_num, 
+                       'LDIAM' as TRTESTCD , 
+                       'Longest Diameter' as TRTEST,
+                       mri_ld_1_3dac as ld  ,
+                       cast(mri_ld_1_3dac as varchar(10)) as TRORRES,
+                       'mm' as TRORRESU,
+                       cast(mri_ld_1_3dac as varchar(10)) as TRSTRESC,
+                       mri_ld_1_3dac as TRSTRESN, 
+                       'mm' as TRSTRESU
+                       from di3sources.i_spy_tcia_patient_clinical_subset
+                       where mri_ld_1_3dac is not null
+                       union
+                       select subjectid, 'mri_ld_interreg' as mri,
+                       3 as ld_num, 
+                       'LDIAM' as TRTESTCD , 
+                       'Longest Diameter' as TRTEST,
+                       mri_ld_interreg as ld  ,
+                       cast(mri_ld_interreg as varchar(10)) as TRORRES,
+                       'mm' as TRORRESU,
+                       cast(mri_ld_interreg as varchar(10)) as TRSTRESC,
+                       mri_ld_interreg as TRSTRESN, 
+                       'mm' as TRSTRESU
+                       from di3sources.i_spy_tcia_patient_clinical_subset
+                       where mri_ld_interreg is not null
+                       union 
+                       select subjectid, 'mri_ld_presurg' as mri,
+                       4 as ld_num,
+                       'LDIAM' as TRTESTCD , 
+                       'Longest Diameter' as TRTEST,
+                       mri_ld_presurg as ld  ,
+                       cast(mri_ld_presurg as varchar(10)) as TRORRES,
+                       'mm' as TRORRESU,
+                       cast(mri_ld_presurg as varchar(10)) as TRSTRESC,
+                       mri_ld_presurg as TRSTRESN, 
+                       'mm' as TRSTRESU
+                       from di3sources.i_spy_tcia_patient_clinical_subset
+                       where mri_ld_presurg is not null
+                       
+                       )
+                       ,
+                       ispy_data_rownums as (
+                       select uld.*,
+                       dense_rank() over( partition by  uld.subjectid order by uld.ld_num) as rownum
+                       from ispy_ld_data uld 
+                       )
+                       
+                       
+                       ,
+                       ispy_study_data as (
+                       select distinct study.patient_num ,
+                       study.study_date, study.description, series.modality , pd.tcia_subject_id 
+                       ,
+                       dense_rank() over( partition by  study.patient_num order by study.study_date) as rownum
+                       
+                       from di3crcdata.dcm_study_dimension study
+                       join di3crcdata.dcm_series_dimension series on study.studyid = series.studyid
+                       join di3crcdata.patient_dimension pd on study.patient_num = pd.patient_num 
+                       where series.modality='MR' and pd.tcia_subject_id like 'ISPY1%')
+                       
+                       ,
+                       all_ispy_data as (
+                       select * from ispy_data_rownums urd join ispy_study_data usd 
+                       on 'ISPY1_' || urd.subjectid = usd.tcia_subject_id   and urd.rownum = usd.rownum  
+                       ),
+                       ucsf_tr as (
+                       select df.collection as studyid, 
+                       cast('TR' as varchar(2)) as domain,
+                       aud.tcia_subject_id as USUBJID,
+                       row_number() over() as TRSEQ,
+                       aud.trtestcd as trtestcd,
+                       aud.trtest as trtest,
+                       aud.trorres as trorres,
+                       aud.trorresu as trorresu,
+                       aud.trstresc as trstresc,
+                       aud.trstresn as trstresn,
+                       aud.TRSTRESU as TRSTRESU,
+                       aud.modality as TRMETHOD,
+                       aud.study_date as TRDRC 
+                       
+                       from dataset_facts df join all_ucsf_data aud on df.patient_num = aud.patient_num 
+where  (", where_clause , ")
+                       )
+                      ,  ispy_tr 
+                        as 
+                        (select df.collection as studyid, 
+                            cast('TR' as varchar(2)) as domain,
+                       aud.tcia_subject_id as USUBJID,
+                       row_number() over() as TRSEQ,
+                       aud.trtestcd as trtestcd,
+                       aud.trtest as trtest,
+                       aud.trorres as trorres,
+                       aud.trorresu as trorresu,
+                       aud.trstresc as trstresc,
+                       aud.trstresn as trstresn,
+                       aud.TRSTRESU as TRSTRESU,
+                       aud.modality as TRMETHOD,
+                       aud.study_date as TRDRC 
+                       
+                       from dataset_facts df join all_ispy_data aud on df.patient_num = aud.patient_num 
+where  (", where_clause , ")
+                       )
+                       select studyid, domain, USUBJID, trseq, trtestcd, trtest, trorres, 
+                             trorresu, trstresc, trstresn, TRSTRESU, TRMETHOD,TRDRC from ucsf_tr 
+                       union 
+                             select studyid, domain, USUBJID, trseq, trtestcd, trtest, trorres, 
+                             trorresu, trstresc, trstresn, TRSTRESU, TRMETHOD,TRDRC from ispy_tr 
+                        
+                       order by studyid, usubjid ,TRDRC
+                       "
+  )
+  
+  tr_postgres <- dbGetQuery(con, sql_string)
+  if(length(tr_postgres) > 0) {  
+    colnames(tr_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TRSEQ', 'TRTESTCD', 'TRTEST', 'TRORRES', 'TRORRESU','TRSTRESC','TRSTRESN',
+                                'TRSTRESU', 'TRMETHOD', 'TRDRC')
+  }
+  tr_dt <- datatable(tr_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
+                     options = list( searching = TRUE, autoWidth=FALSE,
+                                     scrollX=TRUE, fixedColumns=list(leftColumns=4)
+                     ))
+                     
+  output$TR <- DT::renderDataTable(tr_dt)
+  
+  
+  
   dbDisconnect(con)
   
  
@@ -270,13 +505,14 @@ server <- function(input, output) {
       content = function(file ){
         tmpdir <- tempdir()
         setwd(tempdir())
-        fs <- c("dm.xpt", "ds.xpt", "mi.xpt", "pr.xpt", "ss.xpt", "tu.xpt")
+        fs <- c("dm.xpt", "ds.xpt", "mi.xpt", "pr.xpt", "ss.xpt", "tu.xpt", "tr.xpt")
         write.xport(dm_postgres, file="dm.xpt")
         write.xport(ds_postgres, file="ds.xpt")
         write.xport(mi_postgres, file="mi.xpt")
         write.xport(pr_postgres, file="pr.xpt")
         write.xport(ss_postgres, file="ss.xpt")
         write.xport(tu_postgres, file="tu.xpt")
+        write.xport(tr_postgres, file="tr.xpt")
         
         zip(zipfile=file,files=fs)
       }, 
@@ -289,13 +525,14 @@ server <- function(input, output) {
     content = function(file ){
       tmpdir <- tempdir()
       setwd(tempdir())
-      fs <- c("dm.csv", "ds.csv", "mi.csv", "pr.csv", "ss.csv", "tu.csv")
+      fs <- c("dm.csv", "ds.csv", "mi.csv", "pr.csv", "ss.csv", "tu.csv", "tr.csv")
       write.csv(dm_postgres, "dm.csv")
       write.csv(ds_postgres, "ds.csv")
       write.csv(mi_postgres, "mi.csv")
       write.csv(pr_postgres, "pr.csv")
       write.csv(ss_postgres, "ss.csv")
       write.csv(tu_postgres, "tu.csv")
+      write.csv(tr_postgres, "tr.csv")
       
       zip(zipfile=file,files=fs)
     }, 
