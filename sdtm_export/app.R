@@ -169,7 +169,8 @@ server <- function(input, output) {
                        join di3crcdata.dcm_study_dimension sd on pd.patient_num = sd.patient_num 
                        
                        )
-                       select df.collection as STUDYID, cast('PR' as varchar(2)) as DOMAIN, m.tcia_subject_id as USUBJID, rownum as PRSEQ,m.description as PRTRT,
+                       select df.collection as STUDYID, 
+                         cast('PR' as varchar(2)) as DOMAIN, m.tcia_subject_id as USUBJID, rownum as PRSEQ,m.description as PRTRT,
                        m.study_date as PRSTDTC
                        
                        from dataset_facts df join mri_data m on df.patient_num = m.patient_num
@@ -242,17 +243,54 @@ server <- function(input, output) {
   
   progress$inc(5/10, detail= "TU")
   
-  sql_string <- paste( " with tu_data as (
-         select collection as studyid, cast('TU' as varchar(2)) as domain, tcia_subject_id as USUBJID,  1 as tuseq, 
-  cast('TUMIDENT' as varchar(20)) as tutestcd, cast('Tumor Identification' as varchar(256)) as TUTEST, 
-                       anatomic_site_value as TULOC,  lat_value as TULAT  from di3sources.row_export_data  
-      where (anatomic_site_value is not null or lat_value is not null ) and  (", where_clause , ") )
-                       select studyid, domain, usubjid, tuseq, tutestcd, tutest, tuloc, tulat from tu_data"
+  sql_string <- paste( " 
+with
+                       dataset_concepts as
+                       (select c_basecode, c_name  from di3metadata.di3 where c_fullname like '%Data Set%' ),
+                       dataset_facts as
+                       (
+                       select
+                       f.patient_num as patient_num,
+                       f.concept_cd,
+                       sc.c_name as collection
+                       from di3crcdata.observation_fact f
+                       join dataset_concepts sc on f.concept_cd = sc.c_basecode
+                       ),
+                       mri_data as 
+                       (
+                       select distinct pd.tcia_subject_id, pd.patient_num, sd.study_date,  series.modality
+                       
+                       
+                       
+                       from di3crcdata.patient_dimension pd 
+                       join di3crcdata.dcm_study_dimension sd on pd.patient_num = sd.patient_num 
+                       join di3crcdata.dcm_series_dimension series on sd.studyid = series.studyid
+                       join dataset_facts df1 on pd.patient_num = df1.patient_num and (", where_clause ,")
+                       
+                       ),
+                       tu_data as (
+                       select df.collection as STUDYID, cast('TU' as varchar(2)) as DOMAIN, m.tcia_subject_id as USUBJID,
+                       
+                       m.modality as TUTESTCD,
+                       red.anatomic_site_value as TULOC,  red.lat_value as TULAT  ,
+                       m.study_date as TUDTC
+                       
+                       
+                       from dataset_facts df join mri_data m on df.patient_num = m.patient_num
+                       join di3sources.row_export_data red  on m.tcia_subject_id = red.tcia_subject_id 
+                       where (red.anatomic_site_value is not null or red.lat_value is not null ) 
+                       order by df.collection, m.tcia_subject_id 
+                       )
+                       select 
+                       studyid, domain, usubjid, row_number() over () as tuseq, tutestcd, tuloc, tulat, tudtc
+                       from tu_data
+                       
+                       "
     
                        )
   tu_postgres <- dbGetQuery(con, sql_string)
   if(length(tu_postgres) > 0) {  
-    colnames(tu_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TUSEQ', 'TUTESTCD', 'TUTEST', 'TULOC', 'TULAT')
+    colnames(tu_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TUSEQ', 'TUTESTCD', 'TULOC', 'TULAT', 'TUDTC')
   }
   tu_dt <- datatable(tu_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
                      options = list( searching = TRUE, autoWidth=FALSE,
