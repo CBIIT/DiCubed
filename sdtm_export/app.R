@@ -31,7 +31,6 @@ ui <- fluidPage(
                 tabPanel("DS", DT::dataTableOutput("DS")),
                 tabPanel("MI", DT::dataTableOutput("MI")),
                 tabPanel("PR", DT::dataTableOutput("PR")),
-                tabPanel("RS"),
                 tabPanel("SS", DT::dataTableOutput("SS")),
                 tabPanel("TU",  DT::dataTableOutput("TU")),
                 tabPanel("TR",  DT::dataTableOutput("TR"))
@@ -265,7 +264,9 @@ with
                        from di3crcdata.patient_dimension pd 
                        join di3crcdata.dcm_study_dimension sd on pd.patient_num = sd.patient_num 
                        join di3crcdata.dcm_series_dimension series on sd.studyid = series.studyid
-                       join dataset_facts df1 on pd.patient_num = df1.patient_num and (", where_clause ,")
+                       join dataset_facts df1 on pd.patient_num = df1.patient_num 
+                       where (", where_clause ,") and series.modality = 'MR'
+                
                        
                        ),
                        tu_data as (
