@@ -283,7 +283,7 @@ with
                        order by df.collection, m.tcia_subject_id 
                        )
                        select 
-                       studyid, domain, usubjid, row_number() over () as tuseq, tutestcd, tuloc, tulat, tudtc
+                       studyid, domain, usubjid, row_number() over () as tuseq, cast('T01' as varchar(4)) as TULNKID, tutestcd, tuloc, tulat, tudtc
                        from tu_data
                        
                        "
@@ -291,7 +291,7 @@ with
                        )
   tu_postgres <- dbGetQuery(con, sql_string)
   if(length(tu_postgres) > 0) {  
-    colnames(tu_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TUSEQ', 'TUTESTCD', 'TULOC', 'TULAT', 'TUDTC')
+    colnames(tu_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TUSEQ', 'TULNKID', 'TUTESTCD', 'TULOC', 'TULAT', 'TUDTC')
   }
   tu_dt <- datatable(tu_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
                      options = list( searching = TRUE, autoWidth=FALSE,
@@ -328,7 +328,9 @@ with
                        'cm' as TRORRESU,
                        cast(ld_1 as varchar(10)) as TRSTRESC,
                        ld_1 as TRSTRESN, 
-                       'cm' as TRSTRESU
+                       'cm' as TRSTRESU,
+                       1 as VISIT,
+                       cast('MR1' as varchar(3)) as VISITNUM
                        from di3sources.shared_clinical_and_rfs 
                        where mri_1 = 'yes' and ld_1 is not null
                        
@@ -341,7 +343,9 @@ with
                        'cm' as TRORRESU,
                        cast(ld_2 as varchar(10)) as TRSTRESC,
                        ld_2 as TRSTRESN, 
-                       'cm' as TRSTRESU
+                       'cm' as TRSTRESU,
+                       2 as VISIT,
+                       cast('MR2' as varchar(3)) as VISITNUM
                        from di3sources.shared_clinical_and_rfs 
                        where mri_2 = 'yes' and ld_2 is not null  
                        union
@@ -353,7 +357,9 @@ with
                        'cm' as TRORRESU,
                        cast(ld_3 as varchar(10)) as TRSTRESC,
                        ld_3 as TRSTRESN, 
-                       'cm' as TRSTRESU
+                       'cm' as TRSTRESU,
+                       3 as VISIT,
+                       cast('MR3' as varchar(3)) as VISITNUM
                        
                        from di3sources.shared_clinical_and_rfs 
                        where mri_3 = 'yes' and ld_3 is not null    
@@ -365,7 +371,9 @@ with
                        'cm' as TRORRESU,
                        cast(ld_4 as varchar(10)) as TRSTRESC,
                        ld_4 as TRSTRESN, 
-                       'cm' as TRSTRESU
+                       'cm' as TRSTRESU,
+                       4 as VISIT,
+                       cast('MR4' as varchar(3)) as VISITNUM
                        from di3sources.shared_clinical_and_rfs 
                        where mri_4 = 'yes' and ld_4 is not null       
                        
@@ -404,7 +412,9 @@ with
                        'mm' as TRORRESU,
                        cast(mri_ld_baseline as varchar(10)) as TRSTRESC,
                        mri_ld_baseline as TRSTRESN, 
-                       'mm' as TRSTRESU
+                       'mm' as TRSTRESU,
+                       1 as VISIT,
+                       cast('MR1' as varchar(3)) as VISITNUM
                        from di3sources.i_spy_tcia_patient_clinical_subset
                        where mri_ld_baseline is not null
                        
@@ -418,7 +428,9 @@ with
                        'mm' as TRORRESU,
                        cast(mri_ld_1_3dac as varchar(10)) as TRSTRESC,
                        mri_ld_1_3dac as TRSTRESN, 
-                       'mm' as TRSTRESU
+                       'mm' as TRSTRESU,
+                       2 as VISIT,
+                       cast('MR2' as varchar(3)) as VISITNUM
                        from di3sources.i_spy_tcia_patient_clinical_subset
                        where mri_ld_1_3dac is not null
                        union
@@ -431,7 +443,9 @@ with
                        'mm' as TRORRESU,
                        cast(mri_ld_interreg as varchar(10)) as TRSTRESC,
                        mri_ld_interreg as TRSTRESN, 
-                       'mm' as TRSTRESU
+                       'mm' as TRSTRESU,
+                       3 as VISIT,
+                       cast('MR3' as varchar(3)) as VISITNUM
                        from di3sources.i_spy_tcia_patient_clinical_subset
                        where mri_ld_interreg is not null
                        union 
@@ -444,7 +458,9 @@ with
                        'mm' as TRORRESU,
                        cast(mri_ld_presurg as varchar(10)) as TRSTRESC,
                        mri_ld_presurg as TRSTRESN, 
-                       'mm' as TRSTRESU
+                       'mm' as TRSTRESU,
+                       4 as VISIT,
+                       cast('MR4' as varchar(3)) as VISITNUM
                        from di3sources.i_spy_tcia_patient_clinical_subset
                        where mri_ld_presurg is not null
                        
@@ -487,6 +503,8 @@ with
                        aud.trstresn as trstresn,
                        aud.TRSTRESU as TRSTRESU,
                        aud.modality as TRMETHOD,
+                       aud.visitnum as visitnum,
+                       aud.visit as visit,
                        aud.study_date as TRDRC 
                        
                        from dataset_facts df join all_ucsf_data aud on df.patient_num = aud.patient_num 
@@ -506,16 +524,22 @@ where  (", where_clause , ")
                        aud.trstresn as trstresn,
                        aud.TRSTRESU as TRSTRESU,
                        aud.modality as TRMETHOD,
+                       aud.visitnum as visitnum,
+                       aud.visit as visit,
                        aud.study_date as TRDRC 
                        
                        from dataset_facts df join all_ispy_data aud on df.patient_num = aud.patient_num 
 where  (", where_clause , ")
                        )
-                       select studyid, domain, USUBJID, trseq, trtestcd, trtest, trorres, 
-                             trorresu, trstresc, trstresn, TRSTRESU, TRMETHOD,TRDRC from ucsf_tr 
+                       select studyid, domain, USUBJID, trseq, 
+                       cast('T01' as varchar(4)) as TRLNKID,
+                       trtestcd, trtest, trorres, 
+                             trorresu, trstresc, trstresn, TRSTRESU, TRMETHOD,VISITNUM, VISIT ,TRDRC from ucsf_tr 
                        union 
-                             select studyid, domain, USUBJID, trseq, trtestcd, trtest, trorres, 
-                             trorresu, trstresc, trstresn, TRSTRESU, TRMETHOD,TRDRC from ispy_tr 
+                             select studyid, domain, USUBJID, trseq, 
+                            cast('T01' as varchar(4)) as TRLNKID,
+                            trtestcd, trtest, trorres, 
+                             trorresu, trstresc, trstresn, TRSTRESU, TRMETHOD,VISITNUM, VISIT, TRDRC from ispy_tr 
                         
                        order by studyid, usubjid ,TRDRC
                        "
@@ -523,13 +547,13 @@ where  (", where_clause , ")
   
   tr_postgres <- dbGetQuery(con, sql_string)
   if(length(tr_postgres) > 0) {  
-    colnames(tr_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TRSEQ', 'TRTESTCD', 'TRTEST', 'TRORRES', 'TRORRESU','TRSTRESC','TRSTRESN',
-                                'TRSTRESU', 'TRMETHOD', 'TRDRC')
+    colnames(tr_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TRSEQ', 'TRLNKID', 'TRTESTCD', 'TRTEST', 'TRORRES', 'TRORRESU','TRSTRESC','TRSTRESN',
+                                'TRSTRESU', 'TRMETHOD', 'VISITNUM', 'VISIT', 'TRDRC')
   }
   tr_dt <- datatable(tr_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
                      options = list( searching = TRUE, autoWidth=FALSE,
                                      scrollX=TRUE, fixedColumns=list(leftColumns=4)
-                     ))
+                     ))        
                      
   output$TR <- DT::renderDataTable(tr_dt)
   
