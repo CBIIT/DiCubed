@@ -4,7 +4,7 @@ ui <- fluidPage(
   
   # Sidebar panel for inputs ----
   sidebarPanel(
-    
+     
     # Input: Select the random distribution type ----
     checkboxGroupInput("studies", label="Studies to show:",
                        choices = c("Ivy Gap" = "collection='Ivy-Gap'",
@@ -94,9 +94,21 @@ server <- function(input, output) {
                             
                             
   if(length(dm_postgres) > 0) {                  
-    colnames(dm_postgres) <-  c('STUDYID', 'DM', 'USUBJID','SUBJID', 'RFSTDTC','RFENDTC', 'SITEID', 'BRTHDTC', 'AGE',
+    colnames(dm_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','SUBJID', 'RFSTDTC','RFENDTC', 'SITEID', 'BRTHDTC', 'AGE',
                          'AGEU','SEX', 'RACE', 'DMXFN'
      )
+    label(dm_postgres$STUDYID) <- 'Study Identifier'
+    label(dm_postgres$DOMAIN) <- 'Domain Abbreviation'
+    label(dm_postgres$USUBJID) <- 'Unique Subject Identifier'
+    label(dm_postgres$SUBJID) <- 'Subject Identifier for the Study'
+    label(dm_postgres$RFSTDTC) <- 'Subject Reference Start Date/Time'
+    label(dm_postgres$RFENDTC) <- 'Subject Reference End Date/Time'
+    label(dm_postgres$SITEID) <- 'Study Site Identfier'
+    label(dm_postgres$BRTHDTC) <- 'Date/Time of Birth'
+    label(dm_postgres$AGE) <- 'Age'
+    label(dm_postgres$AGEU) <- 'Age Units'
+    label(dm_postgres$SEX) <- 'Sex'
+    label(dm_postgres$RACE) <- 'Race'
   }
   dm_dt <- datatable(dm_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', escape=TRUE,
                       options = list( searching = TRUE, autoWidth=FALSE,
@@ -135,7 +147,7 @@ server <- function(input, output) {
   ds_postgres <- dbGetQuery(con,sql_string)
   if(length(dm_postgres) > 0) {                  
     
-    colnames(ds_postgres) <-  c('STUDYID', 'DM', 'USUBJID','DSSEQM', 'DSGRPID','DSREFID', 'DSSPID', 'DSTERM', 'DSDECOD',
+    colnames(ds_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','DSSEQM', 'DSGRPID','DSREFID', 'DSSPID', 'DSTERM', 'DSDECOD',
                                 'DSSCAT','EPOCH', 'DSDTC', 'DSSTDTC', 'DSSTDY')
   }
   ds_dt <- datatable(ds_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
@@ -172,6 +184,8 @@ server <- function(input, output) {
                        cast('PR' as varchar(2)) as DOMAIN, m.tcia_subject_id as USUBJID, rownum as PRSEQ,m.description as PRTRT,
                        dl.loinc as PRDECOD
                        ,
+                       cast('IMAGING' as varchar(10)) as PRCAT,
+                       dl.modality as PRSCAT,   
                        m.study_date as PRSTDTC
                        
                        from dataset_facts df join mri_data m on df.patient_num = m.patient_num 
@@ -179,7 +193,7 @@ server <- function(input, output) {
                        where ", where_clause ,  " order by m.tcia_subject_id, m.study_date ") 
   pr_postgres <- dbGetQuery(con, sql_string)
   if(length(pr_postgres) > 0) {  
-    colnames(pr_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','PRSEQ', 'PRTRT','PRDECOD',  'PRSTDTC')
+    colnames(pr_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','PRSEQ', 'PRTRT','PRDECOD', 'PRCAT','PRSCAT', 'PRSTDTC')
   }
   pr_dt <- datatable(pr_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
                      options = list( searching = TRUE, autoWidth=FALSE,
@@ -345,10 +359,10 @@ with
                        'Volume' as TRTEST,
                        ser_volume_1 as vol  ,
                        cast(ser_volume_1 as varchar(10)) as TRORRES,
-                       'cc' as TRORRESU,
+                       'mL' as TRORRESU,
                        cast(ser_volume_1 as varchar(10)) as TRSTRESC,
                        ser_volume_1 as TRSTRESN, 
-                       'cc' as TRSTRESU,
+                       'mL' as TRSTRESU,
                        1 as VISIT,
                        cast('MR1' as varchar(3)) as VISITNUM
                        from di3sources.shared_clinical_and_rfs 
@@ -376,10 +390,10 @@ with
                        'Volume' as TRTEST,
                        ser_volume_2 as vol  ,
                        cast(ser_volume_2 as varchar(10)) as TRORRES,
-                       'cc' as TRORRESU,
+                       'mL' as TRORRESU,
                        cast(ser_volume_2 as varchar(10)) as TRSTRESC,
                        ser_volume_2 as TRSTRESN, 
-                       'cc' as TRSTRESU,
+                       'mL' as TRSTRESU,
                        2 as VISIT,
                        cast('MR2' as varchar(3)) as VISITNUM
                        from di3sources.shared_clinical_and_rfs 
@@ -408,10 +422,10 @@ with
                        'Volume' as TRTEST,
                        ser_volume_3 as vol  ,
                        cast(ser_volume_3 as varchar(10)) as TRORRES,
-                       'cc' as TRORRESU,
+                       'mL' as TRORRESU,
                        cast(ser_volume_3 as varchar(10)) as TRSTRESC,
                        ser_volume_3 as TRSTRESN, 
-                       'cc' as TRSTRESU,
+                       'mL' as TRSTRESU,
                        3 as VISIT,
                        cast('MR3' as varchar(3)) as VISITNUM
                        from di3sources.shared_clinical_and_rfs 
@@ -440,10 +454,10 @@ with
                        'Volume' as TRTEST,
                        ser_volume_4 as vol  ,
                        cast(ser_volume_4 as varchar(10)) as TRORRES,
-                       'cc' as TRORRESU,
+                       'mL' as TRORRESU,
                        cast(ser_volume_4 as varchar(10)) as TRSTRESC,
                        ser_volume_4 as TRSTRESN, 
-                       'cc' as TRSTRESU,
+                       'mL' as TRSTRESU,
                        4 as VISIT,
                        cast('MR4' as varchar(3)) as VISITNUM
                        from di3sources.shared_clinical_and_rfs 
