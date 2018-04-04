@@ -169,14 +169,17 @@ server <- function(input, output) {
                        
                        )
                        select df.collection as STUDYID, 
-                         cast('PR' as varchar(2)) as DOMAIN, m.tcia_subject_id as USUBJID, rownum as PRSEQ,m.description as PRTRT,
+                       cast('PR' as varchar(2)) as DOMAIN, m.tcia_subject_id as USUBJID, rownum as PRSEQ,m.description as PRTRT,
+                       dl.loinc as PRDECOD
+                       ,
                        m.study_date as PRSTDTC
                        
-                       from dataset_facts df join mri_data m on df.patient_num = m.patient_num
+                       from dataset_facts df join mri_data m on df.patient_num = m.patient_num 
+                       left outer join di3sources.desc_to_loinc dl on m.description=dl.orig_desc 
                        where ", where_clause ,  " order by m.tcia_subject_id, m.study_date ") 
   pr_postgres <- dbGetQuery(con, sql_string)
   if(length(pr_postgres) > 0) {  
-    colnames(pr_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','PRSEQ', 'PRTRT', 'PRSTDTC')
+    colnames(pr_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','PRSEQ', 'PRTRT','PRDECOD',  'PRSTDTC')
   }
   pr_dt <- datatable(pr_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
                      options = list( searching = TRUE, autoWidth=FALSE,
@@ -318,6 +321,7 @@ with
                        from di3crcdata.observation_fact f
                        join dataset_concepts sc on f.concept_cd = sc.c_basecode
                        ),
+                       
                        ucsf_ld_data as 
                        (
                        select patient_id, 1 as LD_num, mri_1 as mri, 
@@ -335,6 +339,22 @@ with
                        where mri_1 = 'yes' and ld_1 is not null
                        
                        union 
+                        
+                       select patient_id, 1 as vol_num, mri_1 as mri, 
+                       'VOLUME' as TRTESTCD , 
+                       'Volume' as TRTEST,
+                       ser_volume_1 as vol  ,
+                       cast(ser_volume_1 as varchar(10)) as TRORRES,
+                       'cc' as TRORRESU,
+                       cast(ser_volume_1 as varchar(10)) as TRSTRESC,
+                       ser_volume_1 as TRSTRESN, 
+                       'cc' as TRSTRESU,
+                       1 as VISIT,
+                       cast('MR1' as varchar(3)) as VISITNUM
+                       from di3sources.shared_clinical_and_rfs 
+                       where mri_1 = 'yes' and ser_volume_1 is not null
+
+                       union 
                        select patient_id, 2 as LD_num, mri_2 as mri, 
                        'LDIAM' as TRTESTCD ,
                        'Longest Diameter' as TRTEST,
@@ -348,7 +368,25 @@ with
                        cast('MR2' as varchar(3)) as VISITNUM
                        from di3sources.shared_clinical_and_rfs 
                        where mri_2 = 'yes' and ld_2 is not null  
+
                        union
+
+                        select patient_id, 2 as vol_num, mri_2 as mri, 
+                       'VOLUME' as TRTESTCD , 
+                       'Volume' as TRTEST,
+                       ser_volume_2 as vol  ,
+                       cast(ser_volume_2 as varchar(10)) as TRORRES,
+                       'cc' as TRORRESU,
+                       cast(ser_volume_2 as varchar(10)) as TRSTRESC,
+                       ser_volume_2 as TRSTRESN, 
+                       'cc' as TRSTRESU,
+                       2 as VISIT,
+                       cast('MR2' as varchar(3)) as VISITNUM
+                       from di3sources.shared_clinical_and_rfs 
+                       where mri_2 = 'yes' and ser_volume_2 is not null
+                    
+                       union 
+
                        select patient_id, 3 as LD_num, mri_3 as mri, 
                        'LDIAM' as TRTESTCD ,
                        'Longest Diameter' as TRTEST,
@@ -363,7 +401,25 @@ with
                        
                        from di3sources.shared_clinical_and_rfs 
                        where mri_3 = 'yes' and ld_3 is not null    
+
+                      union
+                      select patient_id, 3 as vol_num, mri_3 as mri, 
+                       'VOLUME' as TRTESTCD , 
+                       'Volume' as TRTEST,
+                       ser_volume_3 as vol  ,
+                       cast(ser_volume_3 as varchar(10)) as TRORRES,
+                       'cc' as TRORRESU,
+                       cast(ser_volume_3 as varchar(10)) as TRSTRESC,
+                       ser_volume_3 as TRSTRESN, 
+                       'cc' as TRSTRESU,
+                       3 as VISIT,
+                       cast('MR3' as varchar(3)) as VISITNUM
+                       from di3sources.shared_clinical_and_rfs 
+                       where mri_3 = 'yes' and ser_volume_3 is not null
+
+
                        union 
+
                        select patient_id, 4 as LD_num, mri_4 as mri, 'LDIAM' as TRTESTCD ,
                        'Longest Diameter' as TRTEST,
                        ld_4 as ld  ,
@@ -375,8 +431,23 @@ with
                        4 as VISIT,
                        cast('MR4' as varchar(3)) as VISITNUM
                        from di3sources.shared_clinical_and_rfs 
-                       where mri_4 = 'yes' and ld_4 is not null       
-                       
+                       where mri_4 = 'yes' and ld_4 is not null    
+
+                        union
+
+                      select patient_id, 4 as vol_num, mri_4 as mri, 
+                       'VOLUME' as TRTESTCD , 
+                       'Volume' as TRTEST,
+                       ser_volume_4 as vol  ,
+                       cast(ser_volume_4 as varchar(10)) as TRORRES,
+                       'cc' as TRORRESU,
+                       cast(ser_volume_4 as varchar(10)) as TRSTRESC,
+                       ser_volume_4 as TRSTRESN, 
+                       'cc' as TRSTRESU,
+                       4 as VISIT,
+                       cast('MR4' as varchar(3)) as VISITNUM
+                       from di3sources.shared_clinical_and_rfs 
+                       where mri_4 = 'yes' and ser_volume_4 is not null
                        )
                        ,
                        ucsf_data_rownums as (
@@ -401,6 +472,7 @@ with
                        select * from ucsf_data_rownums urd join ucsf_study_data usd 
                        on translate(urd.patient_id , '_', '-') = usd.tcia_subject_id   and urd.rownum = usd.rownum  
                        ),
+
  ispy_ld_data as 
                        (
                        select subjectid, 'mri_ld_baseline' as mri,
