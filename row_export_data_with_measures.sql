@@ -129,7 +129,7 @@ select
             ld_1 as ld, 
            'cm' as ld_units,
            ser_volume_1 as volume,
-           'mL' as volume_units
+           'cc' as volume_units
            from di3sources.shared_clinical_and_rfs 
           where mri_1 = 'yes' and (ld_1 is not null or ser_volume_1 is not null) 
           union 
@@ -138,7 +138,7 @@ select
          ld_2 as ld, 
          'cm' as ld_units,
          ser_volume_2 as volume,
-        'mL' as volume_units
+        'cc' as volume_units
         from di3sources.shared_clinical_and_rfs 
         where mri_2 = 'yes' and (ld_2 is not null or ser_volume_2 is not null)
     union 
@@ -147,7 +147,7 @@ select
        ld_3 as ld, 
        'cm' as ld_units,
        ser_volume_3 as volume,
-      'mL' as volume_units
+      'cc' as volume_units
       from di3sources.shared_clinical_and_rfs 
    
      where mri_3 = 'yes' and (ld_3 is not null or ser_volume_3 is not null)
@@ -157,7 +157,7 @@ select
       ld_4 as ld, 
      'cm' as ld_units,
       ser_volume_4 as volume,
-     'mL' as volume_units
+     'cc' as volume_units
    from di3sources.shared_clinical_and_rfs 
      where mri_4 = 'yes' and (ld_4 is not null or ser_volume_4 is not null)
 )
@@ -169,7 +169,7 @@ meas_data_n as (
      )  ,
      mri_ucsf as 
       (
-     select distinct pd.tcia_subject_id, sd.study_date,  series.modality                       
+     select distinct pd.tcia_subject_id, sd.study_date,  sd.studyid, series.modality                       
      from di3crcdata.patient_dimension pd 
      join di3crcdata.dcm_study_dimension sd on pd.patient_num = sd.patient_num 
     join di3crcdata.dcm_series_dimension series on sd.studyid = series.studyid
@@ -178,7 +178,7 @@ meas_data_n as (
      mri_ucsf_index as (
           select 
         row_number() over(partition by m.tcia_subject_id order by m.study_date) as rownum, 
-               m.tcia_subject_id, m.study_date, m.modality
+               m.tcia_subject_id, m.study_date, m.studyid, m.modality
       from mri_ucsf m 
                            )    ,
 ispy_meas_data as (
@@ -210,7 +210,7 @@ ispy_meas_data as (
       where  mri_ld_interreg is not null 
      union 
      select 'ISPY1_' || subjectid as subject_id,
-     4 as trownum, 
+     3 as trownum, 
      mri_ld_presurg as ld, 
     'mm' as ld_units,
     cast(NULL as numeric ) as volume,
@@ -226,7 +226,7 @@ ispy_meas_data as (
                 )  ,
  mri_ispy as 
       (
- select distinct pd.tcia_subject_id, sd.study_date,  series.modality                       
+ select distinct pd.tcia_subject_id, sd.study_date,  sd.studyid, series.modality                       
   from di3crcdata.patient_dimension pd 
             join di3crcdata.dcm_study_dimension sd on pd.patient_num = sd.patient_num 
      join di3crcdata.dcm_series_dimension series on sd.studyid = series.studyid
@@ -235,15 +235,15 @@ ispy_meas_data as (
     mri_ispy_index as (
                  select 
                row_number() over(partition by m.tcia_subject_id order by m.study_date) as rownum, 
-       m.tcia_subject_id, m.study_date, m.modality
+       m.tcia_subject_id, m.study_date, m.studyid, m.modality
           from mri_ispy m 
          )   
             ,
      meas_data_1 as (
-     select   ms.subject_id , u.study_date, ms.trownum as timepoint, ms.rownum, ms.ld, ms.ld_units, ms.volume, 'mL' as volume_units 
+     select   ms.subject_id , u.study_date, u.studyid, u.modality, ms.trownum as timepoint, ms.rownum, ms.ld, ms.ld_units, ms.volume, 'cc' as volume_units 
         from meas_data_n ms left outer join mri_ucsf_index u on ms.subject_id = u.tcia_subject_id and ms.rownum = u.rownum 
        union	
-         select   ms2.subject_id , u2.study_date, ms2.trownum as timepoint, ms2.rownum, ms2.ld, ms2.ld_units, ms2.volume, ms2.volume_units 
+         select   ms2.subject_id , u2.study_date,u2.studyid, u2.modality, ms2.trownum as timepoint,  ms2.rownum, ms2.ld, ms2.ld_units, ms2.volume, ms2.volume_units 
      from ispy_meas_data_n ms2 left outer join mri_ispy_index u2 on ms2.subject_id = u2.tcia_subject_id and ms2.rownum = u2.rownum
                                           )
  select distinct 
@@ -274,6 +274,8 @@ ispy_meas_data as (
         asf.anatomic_site_ncit,
         asf.anatomic_site_value,
  md.study_date,
+ md.studyid,
+ md.modality,
  md.timepoint,
  md.ld,
  cast(md.ld_units as varchar) as ld_units,
