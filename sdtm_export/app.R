@@ -175,7 +175,7 @@ server <- function(input, output) {
                        mri_data as 
                        (
                        select row_number() over(partition by pd.patient_num order by sd.study_date) as rownum, 
-                       pd.tcia_subject_id, pd.patient_num, pd.total_number_of_series, sd.study_date, sd.description 
+                       pd.tcia_subject_id, pd.patient_num, pd.total_number_of_series, cast(sd.study_date as varchar(10)) as study_date, sd.description 
                        from di3crcdata.patient_dimension pd 
                        join di3crcdata.dcm_study_dimension sd on pd.patient_num = sd.patient_num 
                        
