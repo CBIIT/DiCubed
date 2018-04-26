@@ -210,7 +210,7 @@ ispy_meas_data as (
       where  mri_ld_interreg is not null 
      union 
      select 'ISPY1_' || subjectid as subject_id,
-     3 as trownum, 
+     4 as trownum, 
      mri_ld_presurg as ld, 
     'mm' as ld_units,
     cast(NULL as numeric ) as volume,
