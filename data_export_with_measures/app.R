@@ -1,7 +1,7 @@
 ui <- fluidPage(
   
   # App title ----
-  titlePanel("DI3 Data Downloads With Measures"),
+  titlePanel(HTML("DI<sup>3</sup> Data Downloads With Measures")),
   
   # Sidebar layout with input and output definitions ----
   sidebarLayout(
@@ -9,10 +9,17 @@ ui <- fluidPage(
     # Sidebar panel for inputs ----
     sidebarPanel(
       
-      # Input: Choose dataset ----
-      #  selectInput("dataset", "Choose a dataset:",
-      #              choices = c("rock", "pressure", "cars")),
       
+      checkboxGroupInput("studies", label="Studies to show:",
+                         choices = c("Ivy Gap" = "collection='Ivy-Gap'",
+                                     "BREAST-DIAGNOSIS" = "collection = 'Breast Diagnosis'",
+                                     "Breast-MRI-NACT-Pilot" = "collection = 'Breast-MRI-NACT-Pilot'",
+                                     "ISPY1"= "collection = 'I-Spy1'",
+                                     "TCGA-BRCA" = "collection = 'TCGA-BRCA'"),
+                         selected = c("collection='Ivy-Gap'","collection = 'Breast Diagnosis'","collection = 'Breast-MRI-NACT-Pilot'",
+                                      "collection = 'I-Spy1'", "collection = 'TCGA-BRCA'")) 
+      
+      ,
       # Button
       downloadButton("downloadData", "Download")
       , 
@@ -38,7 +45,14 @@ server <- function(input, output) {
   library(DT)
   library(dplyr)
   
+  observe({
 
+    if (length(input$studies) > 0) {
+      where_clause <- paste(input$studies, collapse=" or ")
+    }  else {
+      where_clause <- " 1=0"
+    }
+    
   dbinfo <- config::get()
   
   drv <- dbDriver("PostgreSQL")
@@ -47,7 +61,8 @@ server <- function(input, output) {
                    user = dbinfo$user, password = dbinfo$password)
 
   
-  df_postgres <- dbGetQuery(con, "SELECT collection, subject_id, tcia_subject_id, 
+  df_postgres <- dbGetQuery(con, 
+      paste("SELECT collection, subject_id, tcia_subject_id, 
                             sex_ncit , sex_value, 
                             age_ncit, age, age_unit,  
                             race_ncit, race_value ,
@@ -60,7 +75,7 @@ server <- function(input, output) {
                             course_of_disease_ncit, course_of_disease_value,
                             anatomic_site_ncit, anatomic_site_value,
                              study_date, studyid,modality,  timepoint, ld, ld_units, volume, volume_units 
-                            from row_export_data_with_meas order by collection, subject_id, study_date")
+                            from row_export_data_with_meas where ", where_clause, " order by collection, subject_id, study_date") )
   #print(df_postgres.colnames)
   #rename(df_postgres, c("collection"="foobar"))
   #print(names(df_postgres))
@@ -100,13 +115,13 @@ server <- function(input, output) {
   # Downloadable csv of selected dataset ----
   output$downloadData <- downloadHandler(
     filename = function() {
-      paste("di3data", ".csv", sep = "")
+      paste("di3data_with_measures", ".csv", sep = "")
     },
     content = function(file) {
       write.csv(df_postgres, file, row.names = FALSE)
     }
   )
-  
+  }) 
 }
 
 shinyApp(ui, server)
