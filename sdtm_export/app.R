@@ -1,5 +1,5 @@
 ui <- fluidPage(
-  titlePanel("DICUBED SDTM Export"),
+  titlePanel(HTML("DI<sup>3</sup> SDTM Export")),
   sidebarLayout(
   
   # Sidebar panel for inputs ----
@@ -80,13 +80,13 @@ server <- function(input, output) {
   
   sql_string <- paste("select collection as STUDYID, cast('DM' as varchar)  as DOMAIN, 
   tcia_subject_id as USUBJID,  
-  cast(NULL as varchar) as SUBJID,
+  tcia_subject_id as SUBJID,
   cast(NULL as date) as RFSTDTC,
   cast(NULL as date) as RFENDTC,
   cast(NULL as varchar) as SITEID,
   cast(NULL as date) as BRTHDTC,
   age as AGE,
-  age_unit as AGEU,
+  upper(age_unit) as AGEU,
   case when sex_value = 'Female' then 'F'
   when sex_value = 'Male' then 'M'
   else ''
@@ -106,7 +106,7 @@ server <- function(input, output) {
    
     print(names(dm_postgres)) 
     for(i in names(dm_postgres)) {
-      print(paste(i, labels[i]))
+   #   print(paste(i, labels[i]))
       label(dm_postgres[i]) <- as.character(labels[i])
     }
    
@@ -126,7 +126,7 @@ server <- function(input, output) {
   sql_string = paste( "select distinct red.collection as studyid,
        cast('DS' as varchar(2)) as domain,
                       red.tcia_subject_id as usubjid,
-                      pm.patient_num as dsseqm,
+                      pm.patient_num as dsseq,
                       cast(NULL as varchar) as dsgrpid,
                       cast(NULL as varchar) as dsrefid,
                       cast(NULL as varchar) as dsspid,
@@ -149,10 +149,10 @@ server <- function(input, output) {
   ds_postgres <- dbGetQuery(con,sql_string)
   if(length(dm_postgres) > 0) {                  
     
-    colnames(ds_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','DSSEQM', 'DSGRPID','DSREFID', 'DSSPID', 'DSTERM', 'DSDECOD',
+    colnames(ds_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','DSSEQ', 'DSGRPID','DSREFID', 'DSSPID', 'DSTERM', 'DSDECOD',
                                 'DSSCAT','EPOCH', 'DSDTC', 'DSSTDTC', 'DSSTDY')
     for(i in names(ds_postgres)) {
-      print(paste(i, labels[i]))
+   #   print(paste(i, labels[i]))
       label(ds_postgres[i]) <- as.character(labels[i])
     }
   }
@@ -200,6 +200,7 @@ server <- function(input, output) {
   pr_postgres <- dbGetQuery(con, sql_string)
   if(length(pr_postgres) > 0) {  
     colnames(pr_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','PRSEQ', 'PRTRT','PRDECOD', 'PRCAT','PRSCAT', 'PRSTDTC')
+    
   }
   pr_dt <- datatable(pr_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
                      options = list( searching = TRUE, autoWidth=FALSE,
@@ -212,22 +213,24 @@ server <- function(input, output) {
   progress$inc(4/10, detail= "MI")
   sql_string <- paste("
     with mi_data as (
-    select collection as studyid, 'MI' as domain, tcia_subject_id as USUBJID,  1 as miseq, 
+    select collection as studyid, 'MI' as domain, tcia_subject_id as USUBJID,
     'ESTRCPT' as mitestcd, 'Estrogen Receptor' as MITEST, er_value as MIORRES,
   'TISSUE' as MISPEC, 'BREAST' as MILOC 
   from di3sources.row_export_data where er_value is not null and (", where_clause , 
  ") union 
-  select collection as studyid, 'MI' as domain, tcia_subject_id as USUBJID,  1 as miseq, 
+  select collection as studyid, 'MI' as domain, tcia_subject_id as USUBJID, 
   'PROGESTR' as mitestcd, 'Progesterone Receptor' as MITEST, pr_value as MIORRES,
   'TISSUE' as MISPEC, 'BREAST' as MILOC 
   from di3sources.row_export_data where pr_value is not null and (" , where_clause, ") 
   union 
-  select collection as studyid, 'MI' as domain, tcia_subject_id as USUBJID,  1 as miseq, 
+  select collection as studyid, 'MI' as domain, tcia_subject_id as USUBJID, 
   'HER2' as mitestcd, 'Human Epidermal Growth Factor Receptor 2' as MITEST, her2_value as MIORRES,
   'TISSUE' as MISPEC, 'BREAST' as MILOC 
   from di3sources.row_export_data where her2_value is not null and (", where_clause, ") 
   ) 
-  select studyid, domain, usubjid, miseq, mitestcd, mitest, miorres, mispec, miloc from mi_data 
+  select studyid, domain, usubjid, 
+  row_number() over(partition by usubjid order by mitestcd ) as miseq,
+ mitestcd, mitest, miorres, mispec, miloc from mi_data 
     order by studyid, usubjid, mitestcd")
   
   mi_postgres <- dbGetQuery(con, sql_string)
@@ -235,7 +238,7 @@ server <- function(input, output) {
     colnames(mi_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','MISEQ', 'MITESTCD', 'MITEST', 'MIORRES', 'MISPEC', 'MILOC')
   }
   for(i in names(mi_postgres)) {
-    print(paste(i, labels[i]))
+  #  print(paste(i, labels[i]))
     label(mi_postgres[i]) <- as.character(labels[i])
   }
   mi_dt <- datatable(mi_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
@@ -258,6 +261,11 @@ server <- function(input, output) {
   ss_postgres <- dbGetQuery(con, sql_string)
   if(length(ss_postgres) > 0) {  
     colnames(ss_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','SSSEQ', 'SSTESTCD', 'SSTEST', 'SSORRES')
+    for(i in names(ss_postgres)) {
+    #  print(paste(i, labels[i]))
+      label(ss_postgres[i]) <- as.character(labels[i])
+    }
+    
   }
   ss_dt <- datatable(ss_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
                      options = list( searching = TRUE, autoWidth=FALSE,
@@ -320,7 +328,7 @@ with
   if(length(tu_postgres) > 0) {  
     colnames(tu_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TUSEQ', 'TULNKID', 'TUTESTCD', 'TULOC', 'TULAT', 'TUDTC')
     for(i in names(tu_postgres)) {
-      print(paste(i, labels[i]))
+     # print(paste(i, labels[i]))
       label(tu_postgres[i]) <- as.character(labels[i])
     }
   }
@@ -650,7 +658,7 @@ where  (", where_clause , ")
     colnames(tr_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TRSEQ', 'TRLNKID', 'TRTESTCD', 'TRTEST', 'TRORRES', 'TRORRESU','TRSTRESC','TRSTRESN',
                                 'TRSTRESU', 'TRMETHOD', 'VISITNUM', 'VISIT', 'TRDRC')
     for(i in names(tr_postgres)) {
-      print(paste(i, labels[i]))
+   #   print(paste(i, labels[i]))
       label(tr_postgres[i]) <- as.character(labels[i])
     }
   }
@@ -668,24 +676,37 @@ where  (", where_clause , ")
  
 
   output$exportSDTM <- downloadHandler (
-      filename = 'dicubed_sdtm_xpt.zip',
+     
+      filename = paste('dicubed_sdtm_xpt', Sys.Date(), '.zip'),
       content = function(file ){
+        withProgress(message='Creating SAS Datasets', value = 0, detail = 'Exporting DM' , {
         tmpdir <- tempdir()
         setwd(tempdir())
         fs <- c("dm.xpt", "ds.xpt", "mi.xpt", "pr.xpt", "ss.xpt", "tu.xpt", "tr.xpt")
+       
         write.xport(dm_postgres, file="dm.xpt")
+        incProgress(amount = 1/8, detail = "Exporting DS")
         write.xport(ds_postgres, file="ds.xpt")
+        incProgress(amount = 1/8, detail = "Exporting MI")
         write.xport(mi_postgres, file="mi.xpt")
+        incProgress(amount = 1/8, detail = "Exporting PR")
         write.xport(pr_postgres, file="pr.xpt")
+        incProgress(amount = 1/8, detail = "Exporting SS")
         write.xport(ss_postgres, file="ss.xpt")
+        incProgress(amount = 1/8, detail = "Exporting TU")
         write.xport(tu_postgres, file="tu.xpt")
+        incProgress(amount = 1/8, detail = "Exporting TR")
         write.xport(tr_postgres, file="tr.xpt")
+        incProgress(amount = 1/8, detail = "Creating ZIP archive")
         
         zip(zipfile=file,files=fs)
+        })
+        
       }, 
       contentType = "application/zip"
       
       )
+    
   
   output$exportCSV <- downloadHandler (
     filename = 'dicubed_sdtm_csv.zip',
@@ -700,7 +721,6 @@ where  (", where_clause , ")
       write.csv(ss_postgres, "ss.csv")
       write.csv(tu_postgres, "tu.csv")
       write.csv(tr_postgres, "tr.csv")
-      
       zip(zipfile=file,files=fs)
     }, 
      contentType = "application/zip"
