@@ -48,13 +48,19 @@ server <- function(input, output) {
   library(dplyr)
   library(config)
   library(SASxport)
+  library(jsonlite)
   observe({
   # read the config.yml file
  
+    
   progress <- shiny::Progress$new()
   on.exit(progress$close())
   
+  progress$set(message="Reading SAS labels",value = 0)
+  labels = fromJSON("labels.json")
+  
   progress$set(message="Constructing SDTM domains",value = 0)
+  
   progress$inc(1/10, detail = "DM")
   
  
@@ -95,20 +101,16 @@ server <- function(input, output) {
                             
   if(length(dm_postgres) > 0) {                  
     colnames(dm_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','SUBJID', 'RFSTDTC','RFENDTC', 'SITEID', 'BRTHDTC', 'AGE',
-                         'AGEU','SEX', 'RACE', 'DMXFN'
+                                                 'AGEU','SEX', 'RACE', 'DMXFN'
      )
-    label(dm_postgres$STUDYID) <- 'Study Identifier'
-    label(dm_postgres$DOMAIN) <- 'Domain Abbreviation'
-    label(dm_postgres$USUBJID) <- 'Unique Subject Identifier'
-    label(dm_postgres$SUBJID) <- 'Subject Identifier for the Study'
-    label(dm_postgres$RFSTDTC) <- 'Subject Reference Start Date/Time'
-    label(dm_postgres$RFENDTC) <- 'Subject Reference End Date/Time'
-    label(dm_postgres$SITEID) <- 'Study Site Identfier'
-    label(dm_postgres$BRTHDTC) <- 'Date/Time of Birth'
-    label(dm_postgres$AGE) <- 'Age'
-    label(dm_postgres$AGEU) <- 'Age Units'
-    label(dm_postgres$SEX) <- 'Sex'
-    label(dm_postgres$RACE) <- 'Race'
+   
+    print(names(dm_postgres)) 
+    for(i in names(dm_postgres)) {
+      print(paste(i, labels[i]))
+      label(dm_postgres[i]) <- as.character(labels[i])
+    }
+   
+  
   }
   dm_dt <- datatable(dm_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', escape=TRUE,
                       options = list( searching = TRUE, autoWidth=FALSE,
@@ -149,6 +151,10 @@ server <- function(input, output) {
     
     colnames(ds_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','DSSEQM', 'DSGRPID','DSREFID', 'DSSPID', 'DSTERM', 'DSDECOD',
                                 'DSSCAT','EPOCH', 'DSDTC', 'DSSTDTC', 'DSSTDY')
+    for(i in names(ds_postgres)) {
+      print(paste(i, labels[i]))
+      label(ds_postgres[i]) <- as.character(labels[i])
+    }
   }
   ds_dt <- datatable(ds_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
                      options = list( searching = TRUE, autoWidth=FALSE,
@@ -227,6 +233,10 @@ server <- function(input, output) {
   mi_postgres <- dbGetQuery(con, sql_string)
   if(length(mi_postgres) > 0) {  
     colnames(mi_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','MISEQ', 'MITESTCD', 'MITEST', 'MIORRES', 'MISPEC', 'MILOC')
+  }
+  for(i in names(mi_postgres)) {
+    print(paste(i, labels[i]))
+    label(mi_postgres[i]) <- as.character(labels[i])
   }
   mi_dt <- datatable(mi_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
                      options = list( searching = TRUE, autoWidth=FALSE,
@@ -309,6 +319,10 @@ with
   tu_postgres <- dbGetQuery(con, sql_string)
   if(length(tu_postgres) > 0) {  
     colnames(tu_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TUSEQ', 'TULNKID', 'TUTESTCD', 'TULOC', 'TULAT', 'TUDTC')
+    for(i in names(tu_postgres)) {
+      print(paste(i, labels[i]))
+      label(tu_postgres[i]) <- as.character(labels[i])
+    }
   }
   tu_dt <- datatable(tu_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
                      options = list( searching = TRUE, autoWidth=FALSE,
@@ -635,6 +649,10 @@ where  (", where_clause , ")
   if(length(tr_postgres) > 0) {  
     colnames(tr_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TRSEQ', 'TRLNKID', 'TRTESTCD', 'TRTEST', 'TRORRES', 'TRORRESU','TRSTRESC','TRSTRESN',
                                 'TRSTRESU', 'TRMETHOD', 'VISITNUM', 'VISIT', 'TRDRC')
+    for(i in names(tr_postgres)) {
+      print(paste(i, labels[i]))
+      label(tr_postgres[i]) <- as.character(labels[i])
+    }
   }
   tr_dt <- datatable(tr_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
                      options = list( searching = TRUE, autoWidth=FALSE,
