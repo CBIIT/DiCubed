@@ -642,12 +642,16 @@ where  (", where_clause , ")
                        select studyid, domain, USUBJID, trseq, 
                        cast('T01' as varchar(4)) as TRLNKID,
                        trtestcd, trtest, trorres, 
-                             trorresu, trstresc, trstresn, TRSTRESU, TRMETHOD,VISITNUM, VISIT ,TRDRC from ucsf_tr 
+                             trorresu, trstresc, trstresn, TRSTRESU, 
+                            case when TRMETHOD = 'MR' then 'MRI' else TRMETHOD end as TRMETHOD ,
+                           VISITNUM, VISIT ,TRDRC from ucsf_tr 
                        union 
                              select studyid, domain, USUBJID, trseq, 
                             cast('T01' as varchar(4)) as TRLNKID,
                             trtestcd, trtest, trorres, 
-                             trorresu, trstresc, trstresn, TRSTRESU, TRMETHOD,VISITNUM, VISIT, TRDRC from ispy_tr 
+                             trorresu, trstresc, trstresn, TRSTRESU, 
+                            case when TRMETHOD = 'MR' then 'MRI' else TRMETHOD end as TRMETHOD ,
+                            VISITNUM, VISIT, TRDRC from ispy_tr 
                         
                        order by studyid, usubjid ,TRDRC
                        "
