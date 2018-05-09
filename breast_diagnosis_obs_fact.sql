@@ -139,12 +139,12 @@ cast(breast_dx_case as varchar(200)) as patient_ide,
     case
       when i.path_dx = 'benign'  then 'NCIt:C14172' /* Benign */
       when i.path_dx = 'benign fibroadenoma' then 'NCIt:C3744l' /* Breast Fibroadenoma */
-      when i.path_dx in ('benign fibrocyst','benign firbosis') then 'NCIt:C3039' /*  Breast Fibrocystic Change */
+      when i.path_dx in ('benign fibrocyst','benign fibrosis') then 'NCIt:C3039' /*  Breast Fibrocystic Change */
       when lower(i.path_dx) like 'ducta%ca%' then 'NCIt:C2924' /* Ductal Breast Carcinoma In Situ  */
       when i.path_dx = 'infiltrating ductal CA' or lower(i.path_dx) like 'invasive ductal%' or lower(i.path_dx) like 'invasive intraduct%'
                       then 'NCIt:C4194' /* Invasive Ductal Carcinoma, Not Otherwise Specified */
-      when lower(i.path_dx) like 'invasive lobular%' then 'NCIt:C7950' /* Invasive Lobular Breast Carcinoma */
-      when lower(i.path_dx) like 'specimen: invasive carcinoma%' then 'NCIt:C7950'
+      when lower(i.path_dx) like 'invasive lobular%' or lower(i.path_dx) = 'infiltrat lobular' then 'NCIt:C7950' /* Invasive Lobular Breast Carcinoma */
+      when lower(i.path_dx) like 'specimen: invasive carcinoma%' then 'NCIt:C4194'
       when lower(i.path_dx) like 'stromal hyperplasia%' then 'NCIt:C35857' /* Stromal Hyperplasia */
       else 'NCIt:C15220+NCIt:C17998' /* unknown */
     end as concept_cd,
@@ -175,6 +175,22 @@ gender  as (
     tcia_breast_clinical_data i where i.breast_dx_case is not null
     )
 ,
+age  as (
+  select
+  cast(breast_dx_case as varchar(200)) as patient_ide,
+         'fabricated_for_' || breast_dx_case as encounter_ide,
+     cast('NCIt:C69260' as varchar(50))  as concept_cd,
+     cast('N' as varchar(50)) as valtype_cd,
+     cast('E' as varchar(255)) as tval_char,
+      cast(i.path_age_decade/10 as decimal(18,5)) as nval_num,
+      cast('Decade' as varchar(50)) as units_cd,
+    current_timestamp as download_date,
+    current_timestamp as import_date,
+    cast('TCIA_Breast-Diagnosis_Sheet1' as varchar(50)) as sourcesystem_cd
+    from
+    tcia_breast_clinical_data i where i.path_age_decade is not null
+    )
+,
 
 breast_diagnosis_facts as (
 
@@ -201,6 +217,9 @@ from primary_diagnosis
 union
 select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd
 from gender 
+union
+select patient_ide, encounter_ide, concept_cd, download_date, valtype_cd, tval_char, nval_num, units_cd, import_date,sourcesystem_cd
+from age 
 )
 
 select * from breast_diagnosis_facts cross join consts;
