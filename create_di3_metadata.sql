@@ -442,6 +442,10 @@ cast('LA' as varchar(3)) as c_visualattributes,
 <UnitValues>
 <NormalUnits>Years</NormalUnits>
 <EqualUnits>YRS</EqualUnits>
+<ConvertingUnits>
+ <Units>Decade</Units>
+ <MultiplyingFactor>10</MultiplyingFactor>
+</ConvertingUnits> 
 </UnitValues><Analysis><Enums /><Counts /><New /></Analysis>
 </ValueMetadata>
 $$
@@ -685,4 +689,15 @@ values (
 NULL , 'NCIt:C16495' , NULL, 
 'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' , 
 'LIKE' , $$\Demographics\$$ ,  NULL, 'The statistical characterization of human populations or segments of human populations (e.g., characterization by age, sex, race, or income).' , 
+current_timestamp , current_timestamp , NULL, NULL) ;
+
+insert into di3metadata.table_access(c_table_cd, c_table_name, c_protected_access, c_hlevel, c_fullname, c_name, c_synonym_cd, 
+      c_visualattributes, c_totalnum, c_basecode, c_metadataxml, c_facttablecolumn , c_dimtablename,c_columnname, 
+      c_columndatatype, c_operator, c_dimcode, c_comment, c_tooltip, c_entry_date, c_change_date, c_status_cd, valuetype_cd )
+values (
+'DI3_MEASURES', 'MEASURES', 'N' , 1 , $$\C20189\$$ , 
+'Property or Attribute' , 'N'  , 'FA' , 
+NULL , 'NCIt:C20189' , NULL, 
+'CONCEPT_CD' , 'CONCEPT_DIMENSION' , 'CONCEPT_PATH' , 'T' , 
+'LIKE' , $$\C20189\$$ ,  NULL, 'A distinguishing quality or prominent aspect of a person, object, action, process, or substance.' , 
 current_timestamp , current_timestamp , NULL, NULL) ;
