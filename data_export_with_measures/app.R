@@ -1,7 +1,7 @@
 ui <- fluidPage(
   
   # App title ----
-  titlePanel(HTML("DI<sup>3</sup> Data Downloads With Measures")),
+  titlePanel(HTML("DI<sup>3</sup> Data Downloads With Measures"), windowTitle = "DICubed Data Downloads with Measures"),
   
   # Sidebar layout with input and output definitions ----
   sidebarLayout(
