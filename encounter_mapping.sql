@@ -104,6 +104,28 @@ with ivy_gap_pats as  (select distinct patient_id from ivy_report)
          'IVY_GAP-ivy_report' as sourcesystem_cd, upload_id_v as upload_id 
 from ivy_gap_pats   d where d.patient_id is not null;   
 
+/* encounters for the measures from the UCSF data */
+
+insert into di3crcdata.encounter_mapping(encounter_ide, encounter_ide_source, project_id, encounter_num, 
+                                         patient_ide, patient_ide_source, encounter_ide_status, upload_date, download_date, import_date, sourcesystem_cd, upload_id)
+      select studyid as encounter_ide, 'TCIA' as encounter_ide_source, 'Dicubed' as project_id, 
+         nextval('encounter_num_seq') as encounter_num, 
+         patient_id as patient_ide, 'shared_clinical_and_rfs' as patient_ide_source,
+         'Active' as encounter_ide_status,  current_timestamp as upload_date, current_timestamp as download_date, current_timestamp as update_date,
+         'TCIA_Breast-MRI-NACT-Pilot_Clinical_and_RFS' as sourcesystem_cd, upload_id_v as upload_id
+       from di3sources.ucsf_measures_view;
+
+/* encounters for the measures from the ISPY data */
+
+insert into di3crcdata.encounter_mapping(encounter_ide, encounter_ide_source, project_id, encounter_num, 
+                                         patient_ide, patient_ide_source, encounter_ide_status, upload_date, download_date, import_date, sourcesystem_cd, upload_id)
+      select studyid as encounter_ide, 'TCIA' as encounter_ide_source, 'Dicubed' as project_id, 
+         nextval('encounter_num_seq') as encounter_num, 
+         patient_id as patient_ide, 'i_spy_tcia_patient_clinical_subset' as patient_ide_source,
+         'Active' as encounter_ide_status,  current_timestamp as upload_date, current_timestamp as download_date, current_timestamp as update_date,
+         'TCIA_ISPY1_Clinical' as sourcesystem_cd, upload_id_v as upload_id
+       from di3sources.ispy_measures_view;
+
 END;
 $body$
 LANGUAGE PLPGSQL;
