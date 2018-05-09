@@ -85,8 +85,11 @@ server <- function(input, output) {
   cast(NULL as date) as RFENDTC,
   cast(NULL as varchar) as SITEID,
   cast(NULL as date) as BRTHDTC,
-  age as AGE,
-  upper(age_unit) as AGEU,
+  case when upper(age_unit) = 'DECADE' then age*10 
+       else age end as age
+,
+  
+  case when age_unit is not null then 'YEARS' else NULL end as ageu,
   case when sex_value = 'Female' then 'F'
   when sex_value = 'Male' then 'M'
   else ''
