@@ -74,7 +74,7 @@ server <- function(input, output) {
                             pdx_ncit, pdx_value,
                             course_of_disease_ncit, course_of_disease_value,
                             anatomic_site_ncit, anatomic_site_value,
-                             study_date, studyid,modality,  timepoint, ld, ld_units, volume, volume_units 
+                             study_date, studyid,modality, loinc, timepoint, ld, ld_units, volume, volume_units 
                             from row_export_data_with_meas where ", where_clause, " order by collection, subject_id, study_date") )
   #print(df_postgres.colnames)
   #rename(df_postgres, c("collection"="foobar"))
@@ -89,7 +89,7 @@ server <- function(input, output) {
                               'Primary Diagnosis NCIT (C15220)', 'Primary Diagnosis',
                               'Clinical Course of Disease NCIT (C35461)', 'Clinical Course of Disease',
                               'Anatomic Site NCIT (C13717)', 'Anatomic Site', 'Study Date', 
-                              'Study Instance UID', 'Modality', 'Timepoint','Longest Diameter NCIT (C96684)',
+                              'Study Instance UID', 'Modality', 'LOINC Code', 'Timepoint','Longest Diameter NCIT (C96684)',
                               'Longest Diameter Units', 'Volume NCIT (C25335)', 'Volume Units'
   )
   #new_dt <- datatable(df_postgres, filter = 'top',colnames = c('Collection', 'Subject ID', 'TCIA Subject ID','Sex NCIT (C28421)', 'Sex Value'), 
