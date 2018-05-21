@@ -169,16 +169,17 @@ meas_data_n as (
      )  ,
      mri_ucsf as 
       (
-     select distinct pd.tcia_subject_id, sd.study_date,  sd.studyid, series.modality                       
+     select distinct pd.tcia_subject_id, sd.study_date,  sd.studyid, series.modality, dl.loinc                     
      from di3crcdata.patient_dimension pd 
      join di3crcdata.dcm_study_dimension sd on pd.patient_num = sd.patient_num 
     join di3crcdata.dcm_series_dimension series on sd.studyid = series.studyid
+    join di3sources.desc_to_loinc dl on dl.orig_desc = sd.description 
     and series.modality = 'MR' where pd.tcia_subject_id like 'UCSF%' 
         ),
      mri_ucsf_index as (
           select 
         row_number() over(partition by m.tcia_subject_id order by m.study_date) as rownum, 
-               m.tcia_subject_id, m.study_date, m.studyid, m.modality
+               m.tcia_subject_id, m.study_date, m.studyid, m.modality, m.loinc
       from mri_ucsf m 
                            )    ,
 ispy_meas_data as (
@@ -226,25 +227,42 @@ ispy_meas_data as (
                 )  ,
  mri_ispy as 
       (
- select distinct pd.tcia_subject_id, sd.study_date,  sd.studyid, series.modality                       
+ select distinct pd.tcia_subject_id, sd.study_date,  sd.studyid, series.modality, dl.loinc                       
   from di3crcdata.patient_dimension pd 
             join di3crcdata.dcm_study_dimension sd on pd.patient_num = sd.patient_num 
      join di3crcdata.dcm_series_dimension series on sd.studyid = series.studyid
+    join di3sources.desc_to_loinc dl on dl.orig_desc = sd.description 
       and series.modality = 'MR' where pd.tcia_subject_id like 'ISPY1%' 
                     ),
     mri_ispy_index as (
                  select 
                row_number() over(partition by m.tcia_subject_id order by m.study_date) as rownum, 
-       m.tcia_subject_id, m.study_date, m.studyid, m.modality
+       m.tcia_subject_id, m.study_date, m.studyid, m.modality, m.loinc
           from mri_ispy m 
          )   
             ,
      meas_data_1 as (
-     select   ms.subject_id , u.study_date, u.studyid, u.modality, ms.trownum as timepoint, ms.rownum, ms.ld, ms.ld_units, ms.volume, 'cc' as volume_units 
+     /* Studies with measures */  
+     select   ms.subject_id , u.study_date, u.studyid, u.modality, u.loinc, ms.trownum as timepoint, ms.rownum, ms.ld, ms.ld_units, ms.volume, 'cc' as volume_units 
         from meas_data_n ms left outer join mri_ucsf_index u on ms.subject_id = u.tcia_subject_id and ms.rownum = u.rownum 
        union	
-         select   ms2.subject_id , u2.study_date,u2.studyid, u2.modality, ms2.trownum as timepoint,  ms2.rownum, ms2.ld, ms2.ld_units, ms2.volume, ms2.volume_units 
+         select   ms2.subject_id , u2.study_date,u2.studyid, u2.modality, u2.loinc,  ms2.trownum as timepoint,  ms2.rownum, ms2.ld, ms2.ld_units, ms2.volume, ms2.volume_units 
      from ispy_meas_data_n ms2 left outer join mri_ispy_index u2 on ms2.subject_id = u2.tcia_subject_id and ms2.rownum = u2.rownum
+
+     union
+
+/* rest of the studies for all datasets */
+ select distinct pd.tcia_subject_id, sd.study_date,  sd.studyid, series.modality, dl.loinc, 
+     cast(NULL as int) as timepoint, cast(NULL as int) as rownum, cast(NULL as float) as ld, cast(NULL as varchar(10) ) as ld_units, 
+     cast(NULL as float) as volume, cast(NULL as varchar(10) )  as volume_units
+     from di3crcdata.patient_dimension pd
+     join di3crcdata.dcm_study_dimension sd on pd.patient_num = sd.patient_num
+    join di3crcdata.dcm_series_dimension series on sd.studyid = series.studyid
+    join di3sources.desc_to_loinc dl on dl.orig_desc = sd.description 
+    where pd.tcia_subject_id like 'BreastDx%' or pd.tcia_subject_id like 'W%' or pd.tcia_subject_id = 'TCGA%'
+        or (pd.tcia_subject_id like 'ISPY%' and series.modality <> 'MR') or
+         (pd.tcia_subject_id like 'UCSF%' and series.modality <> 'MR')
+
                                           )
  select distinct 
         dsf.dataset_value as collection,
@@ -276,6 +294,7 @@ ispy_meas_data as (
  md.study_date,
  md.studyid,
  md.modality,
+ md.loinc,
  md.timepoint,
  md.ld,
  cast(md.ld_units as varchar) as ld_units,
