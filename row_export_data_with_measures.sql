@@ -249,8 +249,8 @@ ispy_meas_data as (
          select   ms2.subject_id , u2.study_date,u2.description, u2.studyid, u2.modality, u2.loinc,  u2.loinc_long_name, ms2.trownum as timepoint,  ms2.rownum, ms2.ld, ms2.ld_units, ms2.volume, ms2.volume_units 
      from ispy_meas_data_n ms2 left outer join mri_ispy_index u2 on ms2.subject_id = u2.tcia_subject_id and ms2.rownum = u2.rownum
 
-     union
-
+     ), 
+    rest_of_studies as (
 /* rest of the studies for all datasets */
  select distinct pd.tcia_subject_id, sd.study_date,  sd.description, sd.studyid, series.modality, dl.loinc, dl.loinc_long_name, 
      cast(NULL as int) as timepoint, cast(NULL as int) as rownum, cast(NULL as float) as ld, cast(NULL as varchar(10) ) as ld_units, 
@@ -260,10 +260,16 @@ ispy_meas_data as (
     join di3crcdata.dcm_series_dimension series on sd.studyid = series.studyid
     left outer join di3sources.desc_to_loinc dl on dl.orig_desc = sd.description 
     where pd.tcia_subject_id like 'BreastDx%' or pd.tcia_subject_id like 'W%' or pd.tcia_subject_id like 'TCGA%'
-        or (pd.tcia_subject_id like 'ISPY%' and series.modality <> 'MR') or
+        or (pd.tcia_subject_id like 'ISPY%' and series.modality <> 'MR') or 
+          (pd.tcia_subject_id like 'ISPY%' and  not exists (select m.studyid from meas_data_1 m where m.studyid = sd.studyid) and series.modality = 'MR') 
+              or       
          (pd.tcia_subject_id like 'UCSF%' and series.modality <> 'MR') 
+         or 
+          (pd.tcia_subject_id like 'ISPY%' and  not exists (select m.studyid from meas_data_1 m where m.studyid = sd.studyid) and series.modality = 'MR') 
 
-                                          )
+                                            ),
+   all_studies as (select * from meas_data_1 union select * from rest_of_studies )
+
  select distinct 
         dsf.dataset_value as collection,
         pm.patient_ide as subject_id,
@@ -317,4 +323,4 @@ ispy_meas_data as (
  left outer join pdx_facts pdf on pd.patient_num = pdf.patient_num 
  left outer join course_of_disease_facts cdf on pd.patient_num = cdf.patient_num 
  left outer join anatomic_site_facts asf on pd.patient_num = asf.patient_num 
- left outer join meas_data_1 md on pd.tcia_subject_id = md.subject_id
+ left outer join all_studies  md on pd.tcia_subject_id = md.subject_id
