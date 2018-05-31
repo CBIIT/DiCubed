@@ -81,10 +81,10 @@ server <- function(input, output) {
   sql_string <- paste("select collection as STUDYID, cast('DM' as varchar)  as DOMAIN, 
   tcia_subject_id as USUBJID,  
   tcia_subject_id as SUBJID,
-  cast(NULL as date) as RFSTDTC,
-  cast(NULL as date) as RFENDTC,
+  cast(NULL as varchar) as RFSTDTC,
+  cast(NULL as varchar) as RFENDTC,
   cast(NULL as varchar) as SITEID,
-  cast(NULL as date) as BRTHDTC,
+  cast(NULL as varchar) as BRTHDTC,
   case when upper(age_unit) = 'DECADE' then age*10 
        else age end as age
 ,
@@ -146,7 +146,7 @@ server <- function(input, output) {
                       cast(NULL as varchar) as epoch,
                       cast(NULL as varchar) as dsdtc,
                       cast(NULL as varchar) as dsstdtc,
-                      cast(NULL as varchar) as dsstdy
+                      cast(NULL as int) as dsstdy
                       
                       from di3sources.row_export_data red join di3crcdata.patient_mapping pm on red.subject_id = pm.patient_ide where ", where_clause)
   ds_postgres <- dbGetQuery(con,sql_string)
@@ -312,7 +312,7 @@ with
                        
                        m.modality as TUTESTCD,
                        red.anatomic_site_value as TULOC,  red.lat_value as TULAT  ,
-                       m.study_date as TUDTC
+                       cast(m.study_date as varchar) as TUDTC
                        
                        
                        from dataset_facts df join mri_data m on df.patient_num = m.patient_num
@@ -372,8 +372,8 @@ with
                        cast(ld_1 as varchar(10)) as TRSTRESC,
                        ld_1 as TRSTRESN, 
                        'cm' as TRSTRESU,
-                       1 as VISIT,
-                       cast('MR1' as varchar(3)) as VISITNUM
+                       cast(1 as int)  as VISITNUM,
+                       cast('MR1' as varchar(3)) as VISIT
                        from di3sources.shared_clinical_and_rfs 
                        where mri_1 = 'yes' and ld_1 is not null
                        
@@ -388,8 +388,8 @@ with
                        cast(ser_volume_1 as varchar(10)) as TRSTRESC,
                        ser_volume_1 as TRSTRESN, 
                        'mL' as TRSTRESU,
-                       1 as VISIT,
-                       cast('MR1' as varchar(3)) as VISITNUM
+                       cast(1 as int) as VISITNUM,
+                       cast('MR1' as varchar(3)) as VISIT
                        from di3sources.shared_clinical_and_rfs 
                        where mri_1 = 'yes' and ser_volume_1 is not null
 
@@ -403,8 +403,8 @@ with
                        cast(ld_2 as varchar(10)) as TRSTRESC,
                        ld_2 as TRSTRESN, 
                        'cm' as TRSTRESU,
-                       2 as VISIT,
-                       cast('MR2' as varchar(3)) as VISITNUM
+                       cast(2 as int) as VISITNUM,
+                       cast('MR2' as varchar(3)) as VISIT
                        from di3sources.shared_clinical_and_rfs 
                        where mri_2 = 'yes' and ld_2 is not null  
 
@@ -419,8 +419,8 @@ with
                        cast(ser_volume_2 as varchar(10)) as TRSTRESC,
                        ser_volume_2 as TRSTRESN, 
                        'mL' as TRSTRESU,
-                       2 as VISIT,
-                       cast('MR2' as varchar(3)) as VISITNUM
+                       cast(2 as int)  as VISIT,
+                       cast('MR2' as varchar(3)) as VISIT
                        from di3sources.shared_clinical_and_rfs 
                        where mri_2 = 'yes' and ser_volume_2 is not null
                     
@@ -435,8 +435,8 @@ with
                        cast(ld_3 as varchar(10)) as TRSTRESC,
                        ld_3 as TRSTRESN, 
                        'cm' as TRSTRESU,
-                       3 as VISIT,
-                       cast('MR3' as varchar(3)) as VISITNUM
+                       cast(3 as int) as VISITNUM,
+                       cast('MR3' as varchar(3)) as VISIT
                        
                        from di3sources.shared_clinical_and_rfs 
                        where mri_3 = 'yes' and ld_3 is not null    
@@ -451,8 +451,8 @@ with
                        cast(ser_volume_3 as varchar(10)) as TRSTRESC,
                        ser_volume_3 as TRSTRESN, 
                        'mL' as TRSTRESU,
-                       3 as VISIT,
-                       cast('MR3' as varchar(3)) as VISITNUM
+                       cast(3 as int) as VISITNUM,
+                       cast('MR3' as varchar(3)) as VISIT
                        from di3sources.shared_clinical_and_rfs 
                        where mri_3 = 'yes' and ser_volume_3 is not null
 
@@ -467,8 +467,8 @@ with
                        cast(ld_4 as varchar(10)) as TRSTRESC,
                        ld_4 as TRSTRESN, 
                        'cm' as TRSTRESU,
-                       4 as VISIT,
-                       cast('MR4' as varchar(3)) as VISITNUM
+                       cast(4 as int) as VISITNUM,
+                       cast('MR4' as varchar(3)) as VISIT
                        from di3sources.shared_clinical_and_rfs 
                        where mri_4 = 'yes' and ld_4 is not null    
 
@@ -483,8 +483,8 @@ with
                        cast(ser_volume_4 as varchar(10)) as TRSTRESC,
                        ser_volume_4 as TRSTRESN, 
                        'mL' as TRSTRESU,
-                       4 as VISIT,
-                       cast('MR4' as varchar(3)) as VISITNUM
+                       cast(4 as int) as VISITNUM,
+                       cast('MR4' as varchar(3)) as VISIT
                        from di3sources.shared_clinical_and_rfs 
                        where mri_4 = 'yes' and ser_volume_4 is not null
                        )
@@ -524,8 +524,8 @@ with
                        cast(mri_ld_baseline as varchar(10)) as TRSTRESC,
                        mri_ld_baseline as TRSTRESN, 
                        'mm' as TRSTRESU,
-                       1 as VISIT,
-                       cast('MR1' as varchar(3)) as VISITNUM
+                       cast(1 as int)  as VISITNUM,
+                       cast('MR1' as varchar(3)) as VISIT
                        from di3sources.i_spy_tcia_patient_clinical_subset
                        where mri_ld_baseline is not null
                        
@@ -540,8 +540,8 @@ with
                        cast(mri_ld_1_3dac as varchar(10)) as TRSTRESC,
                        mri_ld_1_3dac as TRSTRESN, 
                        'mm' as TRSTRESU,
-                       2 as VISIT,
-                       cast('MR2' as varchar(3)) as VISITNUM
+                       cast(2 as int)  as VISITNUM,
+                       cast('MR2' as varchar(3)) as VISIT
                        from di3sources.i_spy_tcia_patient_clinical_subset
                        where mri_ld_1_3dac is not null
                        union
@@ -555,8 +555,8 @@ with
                        cast(mri_ld_interreg as varchar(10)) as TRSTRESC,
                        mri_ld_interreg as TRSTRESN, 
                        'mm' as TRSTRESU,
-                       3 as VISIT,
-                       cast('MR3' as varchar(3)) as VISITNUM
+                       cast(3 as int) as VISITNUM,
+                       cast('MR3' as varchar(3)) as VISIT
                        from di3sources.i_spy_tcia_patient_clinical_subset
                        where mri_ld_interreg is not null
                        union 
@@ -570,8 +570,8 @@ with
                        cast(mri_ld_presurg as varchar(10)) as TRSTRESC,
                        mri_ld_presurg as TRSTRESN, 
                        'mm' as TRSTRESU,
-                       4 as VISIT,
-                       cast('MR4' as varchar(3)) as VISITNUM
+                       cast(4 as int)  as VISITNUM,
+                       cast('MR4' as varchar(3)) as VISIT
                        from di3sources.i_spy_tcia_patient_clinical_subset
                        where mri_ld_presurg is not null
                        
@@ -616,7 +616,7 @@ with
                        aud.modality as TRMETHOD,
                        aud.visitnum as visitnum,
                        aud.visit as visit,
-                       aud.study_date as TRDRC 
+                       cast(aud.study_date as varchar) as TRDTC 
                        
                        from dataset_facts df join all_ucsf_data aud on df.patient_num = aud.patient_num 
 where  (", where_clause , ")
@@ -637,7 +637,7 @@ where  (", where_clause , ")
                        aud.modality as TRMETHOD,
                        aud.visitnum as visitnum,
                        aud.visit as visit,
-                       aud.study_date as TRDRC 
+                       cast(aud.study_date as varchar) as TRDTC 
                        
                        from dataset_facts df join all_ispy_data aud on df.patient_num = aud.patient_num 
 where  (", where_clause , ")
@@ -647,23 +647,23 @@ where  (", where_clause , ")
                        trtestcd, trtest, trorres, 
                              trorresu, trstresc, trstresn, TRSTRESU, 
                             case when TRMETHOD = 'MR' then 'MRI' else TRMETHOD end as TRMETHOD ,
-                           VISITNUM, VISIT ,TRDRC from ucsf_tr 
+                           VISITNUM, VISIT ,TRDTC from ucsf_tr 
                        union 
                              select studyid, domain, USUBJID, trseq, 
                             cast('T01' as varchar(4)) as TRLNKID,
                             trtestcd, trtest, trorres, 
                              trorresu, trstresc, trstresn, TRSTRESU, 
                             case when TRMETHOD = 'MR' then 'MRI' else TRMETHOD end as TRMETHOD ,
-                            VISITNUM, VISIT, TRDRC from ispy_tr 
+                            VISITNUM, VISIT, TRDTC from ispy_tr 
                         
-                       order by studyid, usubjid ,TRDRC
+                       order by studyid, usubjid ,TRDTC
                        "
   )
   
   tr_postgres <- dbGetQuery(con, sql_string)
   if(length(tr_postgres) > 0) {  
     colnames(tr_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TRSEQ', 'TRLNKID', 'TRTESTCD', 'TRTEST', 'TRORRES', 'TRORRESU','TRSTRESC','TRSTRESN',
-                                'TRSTRESU', 'TRMETHOD', 'VISITNUM', 'VISIT', 'TRDRC')
+                                'TRSTRESU', 'TRMETHOD', 'VISITNUM', 'VISIT', 'TRDTC')
     for(i in names(tr_postgres)) {
    #   print(paste(i, labels[i]))
       label(tr_postgres[i]) <- as.character(labels[i])
