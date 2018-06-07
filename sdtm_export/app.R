@@ -78,21 +78,21 @@ server <- function(input, output) {
                    host = dbinfo$host, port = dbinfo$port,
                    user = dbinfo$user, password = dbinfo$password)
   
-  sql_string <- paste("select collection as STUDYID, cast('DM' as varchar)  as DOMAIN, 
+  sql_string <- paste("select collection as STUDYID, cast('DM' as varchar(2))  as DOMAIN, 
   tcia_subject_id as USUBJID,  
   tcia_subject_id as SUBJID,
   cast(NULL as varchar) as RFSTDTC,
   cast(NULL as varchar) as RFENDTC,
-  cast(NULL as varchar) as SITEID,
+  'TCIA_' || collection as SITEID,
   cast(NULL as varchar) as BRTHDTC,
   case when upper(age_unit) = 'DECADE' then age*10 
        else age end as age
 ,
   
-  case when age_unit is not null then 'YEARS' else NULL end as ageu,
-  case when sex_value = 'Female' then 'F'
-  when sex_value = 'Male' then 'M'
-  else ''
+  case when age_unit is not null then cast('YEARS' as varchar(5)) else cast(NULL as varchar(5))  end as ageu,
+  case when sex_value = 'Female' then cast('F' as varchar(1)) 
+  when sex_value = 'Male' then cast('M' as varchar(1))
+  else cast(NULL as varchar(1))
   end sex,
   case when race_value <> 'Unknown' then upper(race_value) else '' end race,
   'http://public.cancerimagingarchive.net/ncia/externalPatientSearch.jsf?patientID=' || tcia_subject_id as DMXFN
@@ -109,11 +109,11 @@ server <- function(input, output) {
    
     print(names(dm_postgres)) 
     for(i in names(dm_postgres)) {
-   #   print(paste(i, labels[i]))
-      label(dm_postgres[i]) <- as.character(labels[i])
+      #print(paste(i, labels[i]))
+      #label(dm_postgres[i]) <- as.character(labels[i])
+        label(dm_postgres[i]) <- labels[i]
     }
-   
-  
+
   }
   dm_dt <- datatable(dm_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', escape=TRUE,
                       options = list( searching = TRUE, autoWidth=FALSE,
@@ -135,12 +135,12 @@ server <- function(input, output) {
                       cast(NULL as varchar) as dsspid,
                       case when  red.course_of_disease_value = 'Recurrent Disease' then 'Recurrent Disease'
                       when red.vital_value = 'Lost to Follow-up'  then 'Lost to Follow-up' 
-                      else ''
+                      else NULL
                       end
                       dsterm,
                       case when red.course_of_disease_value = 'Recurrent Disease' then 'DISEASE RELAPSE'
                       when red.vital_value = 'Lost to Follow-up' then 'LOST TO FOLLOW-UP'
-                      else '' end 
+                      else NULL end 
                       dsdecod,
                       cast(NULL as varchar) as dsscat,
                       cast(NULL as varchar) as epoch,
@@ -148,15 +148,16 @@ server <- function(input, output) {
                       cast(NULL as varchar) as dsstdtc,
                       cast(NULL as int) as dsstdy
                       
-                      from di3sources.row_export_data red join di3crcdata.patient_mapping pm on red.subject_id = pm.patient_ide where ", where_clause)
+                      from di3sources.row_export_data red join di3crcdata.patient_mapping pm on red.subject_id = pm.patient_ide where (", where_clause,
+                      ") and (red.course_of_disease_value = 'Recurrent Disease' or red.vital_value = 'Lost to Follow-up') ")
+  print(sql_string) 
   ds_postgres <- dbGetQuery(con,sql_string)
   if(length(dm_postgres) > 0) {                  
     
     colnames(ds_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','DSSEQ', 'DSGRPID','DSREFID', 'DSSPID', 'DSTERM', 'DSDECOD',
                                 'DSSCAT','EPOCH', 'DSDTC', 'DSSTDTC', 'DSSTDY')
     for(i in names(ds_postgres)) {
-   #   print(paste(i, labels[i]))
-      label(ds_postgres[i]) <- as.character(labels[i])
+      label(ds_postgres[i]) <- labels[i]
     }
   }
   ds_dt <- datatable(ds_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
@@ -183,17 +184,20 @@ server <- function(input, output) {
                        ),
                        mri_data as 
                        (
-                       select row_number() over(partition by pd.patient_num order by sd.study_date) as rownum, 
+                       select 
                        pd.tcia_subject_id, pd.patient_num, pd.total_number_of_series, cast(sd.study_date as varchar(10)) as study_date, sd.description 
                        from di3crcdata.patient_dimension pd 
                        join di3crcdata.dcm_study_dimension sd on pd.patient_num = sd.patient_num 
                        
                        )
                        select df.collection as STUDYID, 
-                       cast('PR' as varchar(2)) as DOMAIN, m.tcia_subject_id as USUBJID, rownum as PRSEQ,m.description as PRTRT,
+                       cast('PR' as varchar(2)) as DOMAIN, m.tcia_subject_id as USUBJID, 
+                       
+                       row_number() over (partition by m.tcia_subject_id order by m.study_date) as PRSEQ,
+                       m.description as PRTRT,
                        dl.loinc as PRDECOD
                        ,
-                       cast('IMAGING' as varchar(10)) as PRCAT,
+                       cast('IMAGING' as varchar(7)) as PRCAT,
                        dl.modality as PRSCAT,   
                        m.study_date as PRSTDTC
                        
@@ -203,6 +207,9 @@ server <- function(input, output) {
   pr_postgres <- dbGetQuery(con, sql_string)
   if(length(pr_postgres) > 0) {  
     colnames(pr_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','PRSEQ', 'PRTRT','PRDECOD', 'PRCAT','PRSCAT', 'PRSTDTC')
+    for(i in names(pr_postgres)) {
+      label(pr_postgres[i]) <- labels[i]
+    }
     
   }
   pr_dt <- datatable(pr_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
@@ -216,29 +223,29 @@ server <- function(input, output) {
   progress$inc(4/10, detail= "MI")
   sql_string <- paste("
     with mi_data as (
-    select collection as studyid, 'MI' as domain, tcia_subject_id as USUBJID,
+    select collection as studyid, cast('MI' as varchar(2)) as domain, tcia_subject_id as USUBJID,
     'ESTRCPT' as mitestcd, 'Estrogen Receptor' as MITEST, er_value as MIORRES,
-  'TISSUE' as MISPEC, 'BREAST' as MILOC 
+  cast('TISSUE' as varchar(6)) as MISPEC, cast('BREAST' as varchar(6)) as MILOC 
   from di3sources.row_export_data where er_value is not null and (", where_clause , 
  ") union 
-  select collection as studyid, 'MI' as domain, tcia_subject_id as USUBJID, 
+  select collection as studyid, cast('MI' as varchar(2)) as domain, tcia_subject_id as USUBJID, 
   'PROGESTR' as mitestcd, 'Progesterone Receptor' as MITEST, pr_value as MIORRES,
-  'TISSUE' as MISPEC, 'BREAST' as MILOC 
+  cast('TISSUE' as varchar(6)) as MISPEC, cast('BREAST' as varchar(6)) as MILOC 
   from di3sources.row_export_data where pr_value is not null and (" , where_clause, ") 
   union 
-  select collection as studyid, 'MI' as domain, tcia_subject_id as USUBJID, 
+  select collection as studyid, cast('MI' as varchar(2))  as domain, tcia_subject_id as USUBJID, 
   'HER2' as mitestcd, 'Human Epidermal Growth Factor Receptor 2' as MITEST, her2_value as MIORRES,
-  'TISSUE' as MISPEC, 'BREAST' as MILOC 
+  cast('TISSUE' as varchar(6)) as MISPEC, cast('BREAST' as varchar(6)) as MILOC 
   from di3sources.row_export_data where her2_value is not null and (", where_clause, ") 
   ) 
   select studyid, domain, usubjid, 
   row_number() over(partition by usubjid order by mitestcd ) as miseq,
- mitestcd, mitest, miorres, mispec, miloc from mi_data 
+ mitestcd, mitest, miorres, miorres as mistresc, mispec, miloc from mi_data 
     order by studyid, usubjid, mitestcd")
   
   mi_postgres <- dbGetQuery(con, sql_string)
   if(length(mi_postgres) > 0) {  
-    colnames(mi_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','MISEQ', 'MITESTCD', 'MITEST', 'MIORRES', 'MISPEC', 'MILOC')
+    colnames(mi_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','MISEQ', 'MITESTCD', 'MITEST', 'MIORRES', 'MISTRESC', 'MISPEC', 'MILOC')
   }
   for(i in names(mi_postgres)) {
   #  print(paste(i, labels[i]))
@@ -265,8 +272,7 @@ server <- function(input, output) {
   if(length(ss_postgres) > 0) {  
     colnames(ss_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','SSSEQ', 'SSTESTCD', 'SSTEST', 'SSORRES')
     for(i in names(ss_postgres)) {
-    #  print(paste(i, labels[i]))
-      label(ss_postgres[i]) <- as.character(labels[i])
+      label(ss_postgres[i]) <- labels[i]
     }
     
   }
@@ -311,7 +317,7 @@ with
                        select df.collection as STUDYID, cast('TU' as varchar(2)) as DOMAIN, m.tcia_subject_id as USUBJID,
                        
                        m.modality as TUTESTCD,
-                       red.anatomic_site_value as TULOC,  red.lat_value as TULAT  ,
+                       upper(red.anatomic_site_value) as TULOC,  upper(red.lat_value) as TULAT  ,
                        cast(m.study_date as varchar) as TUDTC
                        
                        
@@ -331,8 +337,7 @@ with
   if(length(tu_postgres) > 0) {  
     colnames(tu_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TUSEQ', 'TULNKID', 'TUTESTCD', 'TULOC', 'TULAT', 'TUDTC')
     for(i in names(tu_postgres)) {
-     # print(paste(i, labels[i]))
-      label(tu_postgres[i]) <- as.character(labels[i])
+      label(tu_postgres[i]) <- labels[i]
     }
   }
   tu_dt <- datatable(tu_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
@@ -665,8 +670,9 @@ where  (", where_clause , ")
     colnames(tr_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TRSEQ', 'TRLNKID', 'TRTESTCD', 'TRTEST', 'TRORRES', 'TRORRESU','TRSTRESC','TRSTRESN',
                                 'TRSTRESU', 'TRMETHOD', 'VISITNUM', 'VISIT', 'TRDTC')
     for(i in names(tr_postgres)) {
-   #   print(paste(i, labels[i]))
-      label(tr_postgres[i]) <- as.character(labels[i])
+      print(paste(i, labels[i]))
+      
+      label(tr_postgres[i]) <- labels[i]
     }
   }
   tr_dt <- datatable(tr_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
@@ -684,7 +690,7 @@ where  (", where_clause , ")
 
   output$exportSDTM <- downloadHandler (
      
-      filename = paste('dicubed_sdtm_xpt', Sys.Date(), '.zip'),
+      filename = paste('dicubed_sdtm_xpt_', Sys.Date(), '.zip', sep=""),
       content = function(file ){
         withProgress(message='Creating SAS Datasets', value = 0, detail = 'Exporting DM' , {
         tmpdir <- tempdir()
@@ -716,7 +722,7 @@ where  (", where_clause , ")
     
   
   output$exportCSV <- downloadHandler (
-    filename = 'dicubed_sdtm_csv.zip',
+    filename = paste('dicubed_sdtm_csv_', Sys.Date(), '.zip', sep=""),
     content = function(file ){
       tmpdir <- tempdir()
       setwd(tempdir())
