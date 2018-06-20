@@ -129,7 +129,7 @@ server <- function(input, output) {
   sql_string = paste( "select distinct red.collection as studyid,
        cast('DS' as varchar(2)) as domain,
                       red.tcia_subject_id as usubjid,
-                      pm.patient_num as dsseq,
+                      cast(pm.patient_num as int)  as dsseq,
                       cast(NULL as varchar) as dsgrpid,
                       cast(NULL as varchar) as dsrefid,
                       cast(NULL as varchar) as dsspid,
@@ -249,7 +249,7 @@ server <- function(input, output) {
   }
   for(i in names(mi_postgres)) {
   #  print(paste(i, labels[i]))
-    label(mi_postgres[i]) <- as.character(labels[i])
+    label(mi_postgres[i]) <- labels[i]
   }
   mi_dt <- datatable(mi_postgres,    class = 'cell-border stripe compact', extensions = 'FixedColumns', 
                      options = list( searching = TRUE, autoWidth=FALSE,
@@ -263,7 +263,7 @@ server <- function(input, output) {
   
   sql_string <- paste(
     "with ss_data as 
-   (select collection as studyid, cast('SS' as varchar(2)) as domain, tcia_subject_id as USUBJID,  1 as ssseq, 
+   (select collection as studyid, cast('SS' as varchar(2)) as domain, tcia_subject_id as USUBJID,  cast( 1 as int)  as ssseq, 
   cast('RFSIND' as varchar(20)) as sstestcd, cast('Recurrence-free survival indicator' as varchar(256)) as SSTEST, course_of_disease_value as SSORRES
   from di3sources.row_export_data where course_of_disease_value is not null and (", where_clause, ") 
   )
@@ -316,8 +316,13 @@ with
                        tu_data as (
                        select df.collection as STUDYID, cast('TU' as varchar(2)) as DOMAIN, m.tcia_subject_id as USUBJID,
                        
-                       m.modality as TUTESTCD,
+                      /* m.modality as TUTESTCD,*/
+                      cast('TUMIDENT' as varchar) as TUTESTCD,
+                      cast('Tumor Identification' as varchar) as TUTEST,
+                      cast('TARGET' as varchar) as TUORRES,
+                       
                        upper(red.anatomic_site_value) as TULOC,  upper(red.lat_value) as TULAT  ,
+                       cast('MRI' as varchar) as TUMETHOD, 
                        cast(m.study_date as varchar) as TUDTC
                        
                        
@@ -327,7 +332,7 @@ with
                        order by df.collection, m.tcia_subject_id 
                        )
                        select 
-                       studyid, domain, usubjid, row_number() over () as tuseq, cast('T01' as varchar(4)) as TULNKID, tutestcd, tuloc, tulat, tudtc
+                       studyid, domain, usubjid, row_number() over () as tuseq, cast('T01' as varchar(4)) as TULNKID, tutestcd, tutest, tuorres, tuloc, tulat, tumethod, tudtc
                        from tu_data
                        
                        "
@@ -335,7 +340,7 @@ with
                        )
   tu_postgres <- dbGetQuery(con, sql_string)
   if(length(tu_postgres) > 0) {  
-    colnames(tu_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TUSEQ', 'TULNKID', 'TUTESTCD', 'TULOC', 'TULAT', 'TUDTC')
+    colnames(tu_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','TUSEQ', 'TULNKID', 'TUTESTCD', 'TUTEST', 'TUORRES','TULOC', 'TULAT', 'TUMETHOD', 'TUDTC')
     for(i in names(tu_postgres)) {
       label(tu_postgres[i]) <- labels[i]
     }
@@ -619,7 +624,7 @@ with
                        aud.trstresn as trstresn,
                        aud.TRSTRESU as TRSTRESU,
                        aud.modality as TRMETHOD,
-                       aud.visitnum as visitnum,
+                       cast(aud.visitnum as int) as visitnum,
                        aud.visit as visit,
                        cast(aud.study_date as varchar) as TRDTC 
                        
@@ -640,7 +645,7 @@ where  (", where_clause , ")
                        aud.trstresn as trstresn,
                        aud.TRSTRESU as TRSTRESU,
                        aud.modality as TRMETHOD,
-                       aud.visitnum as visitnum,
+                       cast(aud.visitnum as int)  as visitnum,
                        aud.visit as visit,
                        cast(aud.study_date as varchar) as TRDTC 
                        
