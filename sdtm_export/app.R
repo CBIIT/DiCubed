@@ -5,15 +5,14 @@ ui <- fluidPage(
   # Sidebar panel for inputs ----
   sidebarPanel(
      
-    # Input: Select the random distribution type ----
-    checkboxGroupInput("studies", label="Studies to show:",
-                       choices = c("Ivy Gap" = "collection='Ivy-Gap'",
-                         "BREAST-DIAGNOSIS" = "collection = 'Breast Diagnosis'",
-                         "Breast-MRI-NACT-Pilot" = "collection = 'Breast-MRI-NACT-Pilot'",
-                         "ISPY1"= "collection = 'I-Spy1'",
-                          "TCGA-BRCA" = "collection = 'TCGA-BRCA'"),
-                         selected = c("collection='Ivy-Gap'","collection = 'Breast Diagnosis'","collection = 'Breast-MRI-NACT-Pilot'",
-                                      "collection = 'I-Spy1'", "collection = 'TCGA-BRCA'")) 
+     checkboxGroupInput("studies", label="Studies to show:",
+                        choices = c("Ivy Gap" = "collection='Ivy-Gap'",
+                          "BREAST-DIAGNOSIS" = "collection = 'Breast Diagnosis'",
+                          "Breast-MRI-NACT-Pilot" = "collection = 'Breast-MRI-NACT-Pilot'",
+                          "ISPY1"= "collection = 'I-Spy1'",
+                           "TCGA-BRCA" = "collection = 'TCGA-BRCA'"),
+                          selected = c("collection='Ivy-Gap'","collection = 'Breast Diagnosis'","collection = 'Breast-MRI-NACT-Pilot'",
+                                       "collection = 'I-Spy1'", "collection = 'TCGA-BRCA'")) 
   
     
    
@@ -40,7 +39,7 @@ ui <- fluidPage(
   )
 )
 )
-server <- function(input, output) {
+server <- function(input, output, session) {
   
   require(RPostgreSQL)
   library(xtable)
@@ -62,8 +61,7 @@ server <- function(input, output) {
   progress$set(message="Constructing SDTM domains",value = 0)
   
   progress$inc(1/10, detail = "DM")
-  
- 
+
   if (length(input$studies) > 0) {
     where_clause <- paste(input$studies, collapse=" or ")
   }  else {
@@ -73,6 +71,9 @@ server <- function(input, output) {
   
   dbinfo <- config::get()
    
+
+  
+  
   drv <- dbDriver("PostgreSQL")
   con <- dbConnect(drv, dbname = dbinfo$dbname,
                    host = dbinfo$host, port = dbinfo$port,
@@ -152,7 +153,7 @@ server <- function(input, output) {
                       ") and (red.course_of_disease_value = 'Recurrent Disease' or red.vital_value = 'Lost to Follow-up') ")
   print(sql_string) 
   ds_postgres <- dbGetQuery(con,sql_string)
-  if(length(dm_postgres) > 0) {                  
+  if(length(ds_postgres) > 0) {                  
     
     colnames(ds_postgres) <-  c('STUDYID', 'DOMAIN', 'USUBJID','DSSEQ', 'DSGRPID','DSREFID', 'DSSPID', 'DSTERM', 'DSDECOD',
                                 'DSSCAT','EPOCH', 'DSDTC', 'DSSTDTC', 'DSSTDY')
@@ -377,11 +378,15 @@ with
                        'LDIAM' as TRTESTCD , 
                        'Longest Diameter' as TRTEST,
                        ld_1 as ld  ,
-                       cast(ld_1 as varchar(10)) as TRORRES,
-                       'cm' as TRORRESU,
-                       cast(ld_1 as varchar(10)) as TRSTRESC,
-                       ld_1 as TRSTRESN, 
-                       'cm' as TRSTRESU,
+                      /* cast(ld_1 as varchar(10)) as TRORRES, */
+                       cast(ld_1 * 10 as varchar(10)) as TRORRES,
+
+                      /* 'cm' as TRORRESU, */
+                       'mm' as TRORRESU,
+
+                       cast(ld_1 * 10  as varchar(10)) as TRSTRESC,
+                       ld_1 * 10 as TRSTRESN, 
+                       'mm' as TRSTRESU, 
                        cast(1 as int)  as VISITNUM,
                        cast('MR1' as varchar(3)) as VISIT
                        from di3sources.shared_clinical_and_rfs 
@@ -408,11 +413,11 @@ with
                        'LDIAM' as TRTESTCD ,
                        'Longest Diameter' as TRTEST,
                        ld_2 as ld ,
-                       cast(ld_2 as varchar(10)) as TRORRES,
-                       'cm' as TRORRESU,
-                       cast(ld_2 as varchar(10)) as TRSTRESC,
-                       ld_2 as TRSTRESN, 
-                       'cm' as TRSTRESU,
+                       cast(ld_2 * 10 as varchar(10)) as TRORRES,
+                       'mm' as TRORRESU,
+                       cast(ld_2 * 10 as varchar(10)) as TRSTRESC,
+                       ld_2 * 10  as TRSTRESN, 
+                       'mm' as TRSTRESU,
                        cast(2 as int) as VISITNUM,
                        cast('MR2' as varchar(3)) as VISIT
                        from di3sources.shared_clinical_and_rfs 
@@ -440,11 +445,11 @@ with
                        'LDIAM' as TRTESTCD ,
                        'Longest Diameter' as TRTEST,
                        ld_3 as ld,
-                       cast(ld_3 as varchar(10)) as TORRES ,
-                       'cm' as TRORRESU,
-                       cast(ld_3 as varchar(10)) as TRSTRESC,
-                       ld_3 as TRSTRESN, 
-                       'cm' as TRSTRESU,
+                       cast(ld_3 * 10  as varchar(10)) as TORRES ,
+                       'mm' as TRORRESU,
+                       cast(ld_3 * 10  as varchar(10)) as TRSTRESC,
+                       ld_3 * 10  as TRSTRESN, 
+                       'mm' as TRSTRESU,
                        cast(3 as int) as VISITNUM,
                        cast('MR3' as varchar(3)) as VISIT
                        
@@ -472,11 +477,11 @@ with
                        select patient_id, 4 as LD_num, mri_4 as mri, 'LDIAM' as TRTESTCD ,
                        'Longest Diameter' as TRTEST,
                        ld_4 as ld  ,
-                       cast(ld_4 as varchar(10))  as TORRES,
-                       'cm' as TRORRESU,
-                       cast(ld_4 as varchar(10)) as TRSTRESC,
-                       ld_4 as TRSTRESN, 
-                       'cm' as TRSTRESU,
+                       cast(ld_4 * 10  as varchar(10))  as TORRES,
+                       'mm' as TRORRESU,
+                       cast(ld_4 * 10 as varchar(10)) as TRSTRESC,
+                       ld_4 * 10  as TRSTRESN, 
+                       'mm' as TRSTRESU,
                        cast(4 as int) as VISITNUM,
                        cast('MR4' as varchar(3)) as VISIT
                        from di3sources.shared_clinical_and_rfs 
