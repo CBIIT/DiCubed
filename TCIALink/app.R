@@ -53,7 +53,7 @@ with
   dataset_concepts as 
  (select c_basecode, c_name  from di3metadata.di3 where c_fullname like '\\\\Data Set\\\\%')
  select dc.c_name as collection, 
-'<a href=http://public.cancerimagingarchive.net/ncia/externalPatientSearch.jsf?patientID=' || 
+'<a href=https://nbia.cancerimagingarchive.net/nbia-search?PatientCriteria=' || 
       pd.tcia_subject_id || ' target=\"_blank\">' || pd.tcia_subject_id || '</a>' as tcia_subject_id ,
                         pd.total_number_of_studies, pd.total_number_of_series
                         from di3crcdata.qt_query_result_instance qri 
