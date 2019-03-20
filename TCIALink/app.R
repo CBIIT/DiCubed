@@ -2,15 +2,24 @@
 # This Shiny app is the UI/Data for the DICUBED TCIALink i2b2 plugin.
 # 
 #
+library(shiny)
+library(shinyjs)
+jscode <- "shinyjs.openTCIAPage = function(mess) {  window.open(mess); return; }"
+
 ui <- fluidPage(
+  useShinyjs(),
+  extendShinyjs(text=jscode),
   sidebarLayout(
     
     # Sidebar panel for inputs ----
     sidebarPanel(
       
       
-      downloadButton("downloadData", "Download Subject IDs"),
-      tags$footer(tags$p(HTML("<p style='font-size:11px'> Create a CSV download of TCIA Subject IDs for this patient set that is suitable for use on the <a href=https://public.cancerimagingarchive.net/ncia/searchMain.jsf  target='_blank'>TCIA Search page</a> "))),
+      #downloadButton("downloadData", "Download Subject IDs"),
+      actionButton("openAllPatsInTCIA", "Open All Subject IDs in TCIA"),
+
+      tags$footer(tags$p(
+          HTML("<p style='font-size:11px'> Open all of the Subject IDs in the TCIA Search page. "))),
       width = 3
       
     ),
@@ -35,6 +44,7 @@ server <- function(input, output, session) {
   library(dplyr)
   library(config)
   library(shinyBS)
+  library(shinyjs)
   dbinfo <- config::get()
   
   observe( {
@@ -80,9 +90,12 @@ with
                         join dataset_concepts dc on f.concept_cd = dc.c_basecode
                         where qri.result_instance_id = ", psid)
     df_tcia_ids <- dbGetQuery(con, sql_string_tcia_ids)
-  
     
     
+    filter_string <- reactive( { 
+       paste(df_tcia_ids$tcia_subject_id[1])
+    })   
+
     colnames(df_postgres) <-  c('Collection', 'TCIA Subject ID', 'Total Number of Studies','Total Number of Series')
     # colnames(df_tcia_ids) <- c('TCIA Subject ID')
     
@@ -107,10 +120,18 @@ with
         
       }
     )
+    #s2<-paste0("window.open(https://nbia.cancerimagingarchive.net/nbia-search?PatientCriteria=", filter_string())
+    #onclick("openAllPatsInTCIA", info(date()))
+    observeEvent(input$openAllPatsInTCIA, 
+                 { 
+                   s<-paste0("https://nbia.cancerimagingarchive.net/nbia-search?PatientCriteria=", filter_string())
+                   js$openTCIAPage(s)
+                 })
   
   }) # end of observe 
   
+
   
-}
+} # end of server
 
 shinyApp(ui, server)
