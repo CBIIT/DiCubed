@@ -96,8 +96,7 @@ server <- function(input, output, session) {
   else cast(NULL as varchar(1))
   end sex,
   case when race_value <> 'Unknown' then upper(race_value) else '' end race,
-  'http://public.cancerimagingarchive.net/ncia/externalPatientSearch.jsf?patientID=' || tcia_subject_id as DMXFN
-  
+  'https://nbia.cancerimagingarchive.net/nbia-search?PatientCriteria='  || tcia_subject_id as DMXFN
   from di3sources.row_export_data where ", where_clause)
 
   dm_postgres <- dbGetQuery(con, sql_string)
