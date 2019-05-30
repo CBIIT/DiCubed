@@ -52,7 +52,7 @@ server <- function(input, output, session) {
     if (!is.null(query[['psid']]) ) {
       psid <- query[['psid']]
     } else {
-      psid <- 826
+      psid <- 1142
     }
     drv <- dbDriver("PostgreSQL")
     con <- dbConnect(drv, dbname = dbinfo$dbname,
