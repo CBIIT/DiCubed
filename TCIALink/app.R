@@ -4,7 +4,8 @@
 #
 library(shiny)
 library(shinyjs)
-jscode <- "shinyjs.openTCIAPage = function(mess) {  window.open(mess); return; }"
+jscode <-
+  "shinyjs.openTCIAPage = function(mess) {  window.open(mess, mess); return; }"
 
 ui <- fluidPage(
   useShinyjs(),
@@ -48,11 +49,18 @@ server <- function(input, output, session) {
   dbinfo <- config::get()
   
   observe( {
+    #
+    # set the max number of subjects in a tcia link tab
+    #
+    
+    num_subjects_per_tab <- 100
+    
     query<-parseQueryString(session$clientData$url_search)
     if (!is.null(query[['psid']]) ) {
       psid <- query[['psid']]
     } else {
-      psid <- 1142
+      psid <- 1142   # if there is not a patient set id passed in, use this one.
+    
     }
     drv <- dbDriver("PostgreSQL")
     con <- dbConnect(drv, dbname = dbinfo$dbname,
@@ -123,9 +131,26 @@ with
     #s2<-paste0("window.open(https://nbia.cancerimagingarchive.net/nbia-search?PatientCriteria=", filter_string())
     #onclick("openAllPatsInTCIA", info(date()))
     observeEvent(input$openAllPatsInTCIA, 
-                 { 
-                   s<-paste0("https://nbia.cancerimagingarchive.net/nbia-search?PatientCriteria=", filter_string())
-                   js$openTCIAPage(s)
+                 { fs <- filter_string()
+                   splitter <- 100
+                   s_ids <- strsplit(fs, ",")
+                   rs <- s_ids[[1]]
+                  
+                   while(length(rs) >0) {
+                     emit_vector <- head(rs, splitter)
+                    # print(emit_vector)
+                     emit_string <- paste(emit_vector, collapse=",")
+                     s<-paste0("https://nbia.cancerimagingarchive.net/nbia-search?PatientCriteria=", emit_string)
+                     print(s)
+                     js$openTCIAPage(s)
+                    
+                     #print(emit_string)
+                     rs <- tail(rs, -splitter)
+                   
+                 }
+                  # s<-paste0("https://nbia.cancerimagingarchive.net/nbia-search?PatientCriteria=", fs)
+                  #print(s)
+                  # js$openTCIAPage(s)
                  })
   
   }) # end of observe 
